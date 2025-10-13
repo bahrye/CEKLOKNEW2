@@ -2,6 +2,7 @@
 <html>
   <head>
     <base target="_top">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <?!= include('style'); ?>
   </head>
   <body>
@@ -20,7 +21,7 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" placeholder="Masukkan password" autocomplete="current-password">
               </div>
-              <button type="submit" id="login-button">Login</button>
+              <button type="submit" id="login-button"><i class="fa-solid fa-right-to-bracket"></i> <span>Login</span></button>
               <p id="login-message" class="message"></p>
             </div>
          </form>
@@ -34,7 +35,7 @@
             <label for="school-select">Sekolah</label>
             <select id="school-select"></select>
           </div>
-          <button id="school-select-button" onclick="handleSchoolSelection()">Lanjutkan</button>
+          <button id="school-select-button" onclick="handleSchoolSelection()"><i class="fa-solid fa-arrow-right"></i> <span>Lanjutkan</span></button>
         </div>
       </div>
 
@@ -88,10 +89,10 @@
           </div>
 
           <button onclick="handleGuruDownloadRekap()" id="guru-download-rekap-button" class="action-button">
-              Buat & Unduh Rekap Saya
+              <i class="fa-solid fa-file-pdf"></i> <span>Buat & Unduh Rekap Saya</span>
           </button>
           <button onclick="handleGuruDownloadAllRekap()" id="guru-download-all-rekap-button" class="action-button secondary">
-              Unduh Rekap Semua Guru (Satu Sekolah)
+              <i class="fa-solid fa-file-zipper"></i> <span>Unduh Rekap Semua Guru (Satu Sekolah)</span>
           </button>
 
           <p id="guru-rekap-message" class="message" style="margin-top: 5px; margin-bottom: 0;"></p>
@@ -102,15 +103,15 @@
           <h3>MENU UTAMA</h3>
           <div class="dashboard-actions" style="margin-top: 10px;">
             <button id="ceklok-button" class="action-button" onclick="showCeklokPage()">
-              <span>Isi Ceklok Kehadiran</span>
+              <i class="fa-solid fa-calendar-check"></i> <span>Isi Ceklok Kehadiran</span>
             </button>
             
             <button id="lkh-sptjm-button" class="action-button" onclick="showLkhSptjmDashboard()" style="display:none;">
-              <span>LKH dan SPTJM</span>
+              <i class="fa-solid fa-file-signature"></i> <span>LKH dan SPTJM</span>
             </button>
 
             <button id="setting-libur-button" class="action-button secondary" onclick="showTeacherHolidaySettings()">
-              <span>Setting Hari Libur Guru</span>
+              <i class="fa-solid fa-gear"></i> <span>Setting Hari Libur Guru</span>
             </button>
           </div>
           
@@ -120,12 +121,12 @@
               <h3>EMIS</h3>
               <div class="dashboard-actions" style="margin-top: 10px;">
                   <button onclick="showEmisImportPage()" class="action-button">
-                      Import
+                      <i class="fa-solid fa-file-import"></i> <span>Import</span>
                   </button>
                   <p style="text-align: left; font-size: 14px; margin-top: 5px; margin-bottom: 15px;">Klik untuk mengimpor data kehadiran dari file Excel EMIS.</p>
 
                   <button onclick="showEmisExportPage()" class="action-button secondary">
-                      Eksport
+                      <i class="fa-solid fa-file-export"></i> <span>Eksport</span>
                   </button>
                   <p style="text-align: left; font-size: 14px; margin-top: 5px;">Klik untuk mengekspor data kehadiran bulanan ke format Excel.</p>
               </div>
@@ -133,7 +134,7 @@
 
           <hr style="margin: 25px 0; border: none; border-top: 1px solid #E5E7EB;">
 
-          <button class="logout" onclick="handleLogout()">Logout</button>
+          <button class="logout" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span></button>
         </div>
       </div>
 
@@ -162,7 +163,7 @@
             <input type="month" id="staff-rekap-month">
           </div>
           <button onclick="handleStaffDownloadAllRekap()" id="staff-download-all-rekap-button" class="action-button">
-              Unduh Rekap Semua Guru
+              <i class="fa-solid fa-file-zipper"></i> <span>Unduh Rekap Semua Guru</span>
           </button>
           <p id="staff-rekap-all-message" class="message" style="margin-top: 5px;"></p>
           <hr style="margin: 25px 0;">
@@ -176,7 +177,7 @@
           </div>
           <div class="dashboard-actions" style="margin-top: 10px;">
             <button class="action-button" onclick="showCeklokPageForStaff()">
-              <span>Isi Ceklok Kehadiran</span>
+              <i class="fa-solid fa-calendar-check"></i> <span>Isi Ceklok Kehadiran</span>
             </button>
           </div>
           <hr style="margin: 25px 0;">
@@ -191,15 +192,15 @@
             </div>
             <div class="dashboard-actions" style="margin-top: 10px;">
               <button onclick="showEmisImportPageForStaff()" class="action-button">
-                Import
+                <i class="fa-solid fa-file-import"></i> <span>Import</span>
               </button>
               <button onclick="showEmisExportPageForStaff()" class="action-button secondary">
-                Eksport
+                <i class="fa-solid fa-file-export"></i> <span>Eksport</span>
               </button>
             </div>
           </div>
           <hr style="margin: 25px 0; border: none; border-top: 1px solid #E5E7EB;">
-          <button class="logout" onclick="handleLogout()">Logout</button>
+          <button class="logout" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span></button>
         </div>
       </div>
 
@@ -215,7 +216,7 @@
               <button onclick="changeMonth(1)">Bulan Depan &#9654;</button>
             </div>
             <div id="attendance-table-container"></div>
-            <button id="save-button" onclick="handleSave()" disabled>Simpan Semua Perubahan</button>
+            <button id="save-button" onclick="handleSave()" disabled><i class="fa-solid fa-floppy-disk"></i> <span>Simpan Semua Perubahan</span></button>
             <p id="save-message" class="message"></p>
           </div>
       </div>
@@ -227,7 +228,7 @@
               <p>Pilih hari di mana Anda tidak ada jadwal mengajar. Hari yang dipilih akan otomatis ditandai sebagai "Hari Libur Sekolah" pada halaman absensi.</p>
               <div id="holiday-switches-container">
               </div>
-              <button id="save-teacher-holidays-button" onclick="handleSaveTeacherHolidays()">Simpan Pengaturan</button>
+              <button id="save-teacher-holidays-button" onclick="handleSaveTeacherHolidays()"><i class="fa-solid fa-floppy-disk"></i> <span>Simpan Pengaturan</span></button>
               <p id="teacher-holidays-message" class="message"></p>
           </div>
       </div>
@@ -242,7 +243,7 @@
             <label for="emis-file-input">Pilih File Excel</label>
             <input type="file" id="emis-file-input" accept=".xlsx, .xls" style="padding: 10px; height: auto;">
           </div>
-          <button id="import-emis-button" onclick="handleEmisImport()">Proses Import</button>
+          <button id="import-emis-button" onclick="handleEmisImport()"><i class="fa-solid fa-upload"></i> <span>Proses Import</span></button>
           <p id="emis-import-message" class="message"></p>
         </div>
       </div>
@@ -261,7 +262,7 @@
             <label for="lock-id-input">Masukkan LOCK ID Awal</label>
             <input type="number" id="lock-id-input" placeholder="Contoh: 303290459">
           </div>
-          <button id="export-emis-button" onclick="handleEmisExport()">Download Template</button>
+          <button id="export-emis-button" onclick="handleEmisExport()"><i class="fa-solid fa-download"></i> <span>Download Template</span></button>
           <p id="emis-export-message" class="message"></p>
         </div>
       </div>
@@ -276,7 +277,7 @@
               
               <div id="kelola-akun" class="tab-content active">
                   <h3>Daftar Akun</h3>
-                  <button onclick="openUserForm()">+ Tambah Akun Baru</button>
+                  <button onclick="openUserForm()"><i class="fa-solid fa-plus"></i> <span>Tambah Akun Baru</span></button>
                   <div id="user-table-container" style="margin-top: 15px;"></div>
               </div>
 
@@ -285,7 +286,7 @@
                   <div class="input-group">
                     <label for="announcement-input">Tulis pengumuman di sini. Akan tampil di dasbor semua guru dan staff.</label>
                     <textarea id="announcement-input" rows="4"></textarea>
-                    <button onclick="saveAnnouncementsSettings()" style="width: auto; margin-top: 10px;">Simpan Pengumuman</button>
+                    <button onclick="saveAnnouncementsSettings()" style="width: auto; margin-top: 10px;"><i class="fa-solid fa-floppy-disk"></i> <span>Simpan Pengumuman</span></button>
                     <p id="announcements-message" class="message"></p>
                   </div>
                   <hr style="margin: 25px 0;">
@@ -294,14 +295,14 @@
                   <div class="input-group">
                       <label for="locked-months">Masukkan bulan yang dikunci (pisahkan koma, format: YYYY-MM)</label>
                       <input type="text" id="locked-months" placeholder="Contoh: 2024-08,2024-12">
-                      <button onclick="saveLockedMonthsSettings()" style="width: auto; margin-top: 10px;">Simpan Bulan Terkunci</button>
+                      <button onclick="saveLockedMonthsSettings()" style="width: auto; margin-top: 10px;"><i class="fa-solid fa-floppy-disk"></i> <span>Simpan Bulan Terkunci</span></button>
                       <p id="locked-months-message" class="message"></p>
                   </div>
                   <hr style="margin: 25px 0;">
                   <h3>Hari Libur Nasional</h3>
                   <div id="holidays-container"></div>
-                  <button onclick="addHolidayRow()" style="width: auto;">+ Tambah Hari Libur</button>
-                  <button onclick="saveHolidaysSettings()" style="width: auto; margin-top: 20px;">Simpan Semua Hari Libur</button>
+                  <button onclick="addHolidayRow()" style="width: auto;"><i class="fa-solid fa-plus"></i> <span>Tambah Hari Libur</span></button>
+                  <button onclick="saveHolidaysSettings()" style="width: auto; margin-top: 20px;"><i class="fa-solid fa-floppy-disk"></i> <span>Simpan Semua Hari Libur</span></button>
                   <p id="holidays-message" class="message"></p>
                   
                   <hr style="margin: 25px 0;">
@@ -317,12 +318,12 @@
                       <input type="month" id="rekap-month">
                   </div>
                   <button onclick="handleDownloadRekap()" id="download-rekap-button" style="width: auto; margin-top: 10px;">
-                      Buat Rekap & Unduh
+                      <i class="fa-solid fa-file-pdf"></i> <span>Buat Rekap & Unduh</span>
                   </button>
                   <p id="rekap-message" class="message"></p>
                   </div>
 
-              <button class="logout" onclick="handleLogout()">Logout</button>
+              <button class="logout" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span></button>
           </div>
       </div>
       
@@ -344,7 +345,7 @@
         <div class="input-group"> <label for="user-name">Nama Lengkap</label> <input type="text" id="user-name"> </div>
         <div class="input-group"> <label for="user-school">Sekolah (pisahkan dengan koma jika lebih dari satu)</label> <input type="text" id="user-school"> </div>
         <div class="input-group"> <label for="user-role">Peran</label> <select id="user-role"><option value="guru">Guru</option><option value="staff">Staff</option><option value="admin">Admin</option></select> </div>
-        <button onclick="handleUserSave()">Simpan</button>
+        <button onclick="handleUserSave()"><i class="fa-solid fa-floppy-disk"></i> <span>Simpan</span></button>
         <p id="user-form-message" class="message"></p>
       </div>
     </div>
