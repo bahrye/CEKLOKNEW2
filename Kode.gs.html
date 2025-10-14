@@ -501,7 +501,7 @@ function importFromEmis(userEmail, school, fileData) {
         const importDate = new Date(firstDateStr);
         const importMonthStr = `${importDate.getUTCFullYear()}-${String(importDate.getUTCMonth() + 1).padStart(2, '0')}`;
         if (lockedMonths.includes(importMonthStr)) {
-            throw new Error(`Impor gagal. Absensi untuk bulan ${importDate.toLocaleString('id-ID', { month: 'long', year: 'numeric', timeZone: 'UTC' })} sudah dikunci.`);
+            throw new Error(`Gagal mengimpor: Absensi untuk bulan ${importDate.toLocaleString('id-ID', { month: 'long', year: 'numeric', timeZone: 'UTC' })} sudah dikunci.`);
         }
     } else {
         throw new Error("Tidak dapat menemukan tanggal valid di baris pertama data.");
@@ -549,7 +549,7 @@ function importFromEmis(userEmail, school, fileData) {
 
   } catch (e) {
     Logger.log("Error di importFromEmis: " + e.toString() + " | Stack: " + e.stack);
-    return { status: "error", message: `Gagal mengimpor: ${e.message}` };
+    return { status: "error", message: `${e.message}` };
   } finally {
     if (tempFileId) {
       try { Drive.Files.remove(tempFileId); } catch(e) { Logger.log(`Failed to remove temp file: ${e.toString()}`); }
