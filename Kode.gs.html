@@ -8,6 +8,66 @@ const announcementsSheet = ss.getSheetByName("Announcements");
 const teacherHolidaysSheet = ss.getSheetByName("TeacherHolidays");
 const lkhUsersSheet = ss.getSheetByName("LKHUsers"); 
 
+// FUNGSI BARU: Untuk mendapatkan sheet token
+function getUserTokensSheet_() {
+  let sheet = ss.getSheetByName("UserTokens");
+  if (!sheet) {
+    sheet = ss.insertSheet("UserTokens");
+    sheet.appendRow(["Email", "Token", "Timestamp"]);
+  }
+  return sheet;
+}
+
+// FUNGSI BARU: Untuk membuat token unik
+function generateToken_() {
+  return Utilities.getUuid();
+}
+
+// FUNGSI BARU: Verifikasi token dan kembalikan data user
+function verifyToken(token) {
+  try {
+    if (!token) return { status: "failed", message: "Token tidak ada." };
+    const tokenSheet = getUserTokensSheet_();
+    const data = tokenSheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][1] === token) {
+        const email = data[i][0];
+        // Panggil fungsi login internal untuk mendapatkan data user lengkap
+        return getUserDataByEmail_(email);
+      }
+    }
+    return { status: "failed", message: "Token tidak valid." };
+  } catch (e) {
+    Logger.log(`Error di verifyToken: ${e.toString()}`);
+    return { status: "error", message: "Gagal memverifikasi sesi." };
+  }
+}
+
+// Fungsi helper untuk mengambil data user berdasarkan email
+function getUserDataByEmail_(email) {
+    const users = usersSheet.getDataRange().getValues();
+    for (let i = 1; i < users.length; i++) {
+      if (users[i][0].toLowerCase() === email.toLowerCase()) {
+        const schoolString = users[i][3] || "";
+        const schools = schoolString.split(',').map(s => s.trim()).filter(Boolean);
+        const hasLKHFeature = checkIfLKHUser_(email);
+        
+        return { 
+          status: "success", 
+          user: { 
+            email: users[i][0],
+            name: users[i][2], 
+            schools: schools,
+            role: users[i][4],
+            hasLKHFeature: hasLKHFeature
+          }
+        };
+      }
+    }
+    return { status: "failed", message: "User tidak ditemukan." };
+}
+
+
 function getUrutanNamaSheet_() {
   let sheet = ss.getSheetByName("UrutanNama");
   if (!sheet) {
@@ -79,31 +139,59 @@ function checkIfAdminOrStaff(email) {
   return false;
 }
 
+// FUNGSI DIMODIFIKASI: userLogin sekarang mengembalikan token
 function userLogin(email, password) {
   try {
-    const users = usersSheet.getDataRange().getValues();
-    for (let i = 1; i < users.length; i++) {
-      if (users[i][0].toLowerCase() === email.toLowerCase() && users[i][1] == password && users[i][4]) { 
-        const schoolString = users[i][3] || "";
-        const schools = schoolString.split(',').map(s => s.trim()).filter(Boolean);
-        const hasLKHFeature = checkIfLKHUser_(email);
+    const userDataResponse = getUserDataByEmail_(email);
+    if (userDataResponse.status !== "success") {
+        return { status: "failed", message: "Email atau password salah." };
+    }
+
+    const usersData = usersSheet.getDataRange().getValues();
+    const userRow = usersData.find(row => row[0].toLowerCase() === email.toLowerCase());
+
+    if (userRow && userRow[1] == password) {
+        const token = generateToken_();
+        const tokenSheet = getUserTokensSheet_();
+        // Hapus token lama jika ada
+        const tokens = tokenSheet.getDataRange().getValues();
+        for(let i = tokens.length - 1; i > 0; i--){
+          if(tokens[i][0].toLowerCase() === email.toLowerCase()){
+            tokenSheet.deleteRow(i+1);
+          }
+        }
+        tokenSheet.appendRow([email, token, new Date()]);
         
         return { 
-          status: "success", 
-          user: { 
-            email: users[i][0],
-            name: users[i][2], 
-            schools: schools,
-            role: users[i][4],
-            hasLKHFeature: hasLKHFeature
-          }
+            status: "success", 
+            user: userDataResponse.user,
+            token: token // Kirim token ke client
         };
-      }
     }
+    
     return { status: "failed", message: "Email, password salah, atau Anda tidak memiliki peran." };
   } catch(e) {
     Logger.log(`Error di userLogin: ${e.toString()}`);
     return { status: "error", message: "Terjadi kesalahan saat mencoba login. Silakan coba lagi." };
+  }
+}
+
+// FUNGSI BARU: Untuk logout
+function userLogout(token) {
+  try {
+    if (!token) return { status: "success" }; // Tidak ada yang perlu dilakukan jika tidak ada token
+    const tokenSheet = getUserTokensSheet_();
+    const tokens = tokenSheet.getDataRange().getValues();
+    for (let i = 1; i < tokens.length; i++) {
+      if (tokens[i][1] === token) {
+        tokenSheet.deleteRow(i + 1);
+        break;
+      }
+    }
+    return { status: "success" };
+  } catch (e) {
+    Logger.log(`Error di userLogout: ${e.toString()}`);
+    return { status: "error" };
   }
 }
 
