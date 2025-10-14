@@ -94,10 +94,8 @@
           <button onclick="handleGuruDownloadAllRekap()" id="guru-download-all-rekap-button" class="action-button secondary">
               <i class="fa-solid fa-file-zipper"></i> <span>Unduh Rekap Semua Guru (Satu Sekolah)</span>
           </button>
-
-          <p id="guru-rekap-message" class="message" style="margin-top: 5px; margin-bottom: 0;"></p>
-          <p id="guru-rekap-all-message" class="message" style="margin-top: 5px; margin-bottom: 0;"></p>
-
+          
+          <p id="guru-rekap-message" class="message" style="margin-top: 5px;"></p>
           <hr style="margin: 25px 0;">
 
           <h3>MENU UTAMA</h3>
@@ -180,6 +178,7 @@
               <i class="fa-solid fa-calendar-check"></i> <span>Isi Ceklok Kehadiran</span>
             </button>
           </div>
+          <p id="staff-ceklok-message" class="message" style="margin-top: 5px;"></p>
           <hr style="margin: 25px 0;">
 
           <div id="staff-emis-section">
@@ -198,6 +197,7 @@
                 <i class="fa-solid fa-file-export"></i> <span>Eksport</span>
               </button>
             </div>
+            <p id="staff-emis-message" class="message" style="margin-top: 5px;"></p>
           </div>
           <hr style="margin: 25px 0; border: none; border-top: 1px solid #E5E7EB;">
           <button class="logout" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span></button>
@@ -1542,7 +1542,6 @@
           const select = document.getElementById(selectId);
           const email = select.value;
           if (!email) {
-              alert('Silakan pilih seorang guru terlebih dahulu.');
               return null;
           }
           return schoolTeachers.find(t => t.email === email);
@@ -1552,7 +1551,10 @@
           if (!isRedirect) { 
               selectedTeacherForStaff = getSelectedTeacher('staff-teacher-select-ceklok');
           }
-          if (!selectedTeacherForStaff) return;
+          if (!selectedTeacherForStaff) {
+            displayMessage('staff-ceklok-message', 'Silakan pilih seorang guru terlebih dahulu.');
+            return;
+          }
           
           document.getElementById("staff-dashboard-container").style.display = "none";
           document.getElementById("emis-import-container").style.display = "none";
@@ -1564,7 +1566,10 @@
       
       function showEmisImportPageForStaff() {
           selectedTeacherForStaff = getSelectedTeacher('staff-teacher-select-emis');
-          if (!selectedTeacherForStaff) return;
+          if (!selectedTeacherForStaff) {
+            displayMessage('staff-emis-message', 'Silakan pilih seorang guru terlebih dahulu untuk import.');
+            return;
+          }
           
           document.getElementById("staff-dashboard-container").style.display = "none";
           document.getElementById("emis-import-container").style.display = "block";
@@ -1574,7 +1579,10 @@
       
       function showEmisExportPageForStaff() {
           selectedTeacherForStaff = getSelectedTeacher('staff-teacher-select-emis');
-          if (!selectedTeacherForStaff) return;
+          if (!selectedTeacherForStaff) {
+            displayMessage('staff-emis-message', 'Silakan pilih seorang guru terlebih dahulu untuk eksport.');
+            return;
+          }
 
           document.getElementById("staff-dashboard-container").style.display = "none";
           document.getElementById("emis-export-container").style.display = "block";
@@ -1816,10 +1824,12 @@
         evt.currentTarget.className += " active";
       }
 
+      // PERUBAHAN DIMULAI: Menyesuaikan fungsi unduh rekap guru
       function handleGuruDownloadRekap() {
           const monthInput = document.getElementById('guru-rekap-month').value;
           const button = document.getElementById('guru-download-rekap-button');
           if (!monthInput) {
+              // Menargetkan ID pesan yang sudah digabung
               displayMessage('guru-rekap-message', 'Silakan pilih bulan dan tahun terlebih dahulu.');
               return;
           }
@@ -1854,16 +1864,17 @@
           const monthInput = document.getElementById('guru-rekap-month').value; 
           const button = document.getElementById('guru-download-all-rekap-button');
           if (!monthInput) {
-              displayMessage('guru-rekap-all-message', 'Silakan pilih bulan dan tahun di atas terlebih dahulu.');
+              // Menargetkan ID pesan yang sudah digabung dan menggunakan pesan yang konsisten
+              displayMessage('guru-rekap-message', 'Silakan pilih bulan dan tahun terlebih dahulu.');
               return;
           }
           if (!selectedSchool) {
-              displayMessage('guru-rekap-all-message', 'Informasi sekolah Anda tidak ditemukan.');
+              displayMessage('guru-rekap-message', 'Informasi sekolah Anda tidak ditemukan.');
               return;
           }
           button.disabled = true;
           button.querySelector('span').textContent = 'Membuat PDF...';
-          displayMessage('guru-rekap-all-message', 'Sedang memproses rekap semua guru, ini mungkin perlu waktu lebih lama...', { isProcessing: true });
+          displayMessage('guru-rekap-message', 'Sedang memproses rekap semua guru, ini mungkin perlu waktu lebih lama...', { isProcessing: true });
           google.script.run
               .withSuccessHandler(response => {
                   if (response.success) {
@@ -1873,20 +1884,21 @@
                       document.body.appendChild(link);
                       link.click();
                       document.body.removeChild(link);
-                      displayMessage('guru-rekap-all-message', 'PDF berhasil dibuat dan sedang diunduh!', { isSuccess: true });
+                      displayMessage('guru-rekap-message', 'PDF berhasil dibuat dan sedang diunduh!', { isSuccess: true });
                   } else {
-                      displayMessage('guru-rekap-all-message', 'Error: ' + response.error);
+                      displayMessage('guru-rekap-message', 'Error: ' + response.error);
                   }
                   button.disabled = false;
                   button.querySelector('span').textContent = 'Unduh Rekap Semua Guru (Satu Sekolah)';
               })
               .withFailureHandler(error => {
-                  displayMessage('guru-rekap-all-message', 'Error: ' + error.message);
+                  displayMessage('guru-rekap-message', 'Error: ' + error.message);
                   button.disabled = false;
                   button.querySelector('span').textContent = 'Unduh Rekap Semua Guru (Satu Sekolah)';
               })
               .prepareSchoolRekapForPrint(currentUser.email, monthInput, selectedSchool);
       }
+      // PERUBAHAN SELESAI
 
       function showLkhPage() {
         document.getElementById("lkh-sptjm-dashboard-container").style.display = "none";
