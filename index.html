@@ -369,6 +369,7 @@
       let appSettings = { lockedMonths: [], holidays: {}, announcements: "", teacherHolidays: [] };
       let selectedTeacherForStaff = null; 
       let schoolTeachers = []; 
+      let latestRequestToken = 0;
       const SPREADSHEET_ID = "1EIQY1DeGcwhEaYojbGMah-S5HbtsrON5YRy37bl_vLg";
 
       function displayMessage(elementId, text, options = {}) {
@@ -910,23 +911,30 @@
           const month = date.getMonth() + 1;
           const userEmail = (currentUser.role === 'staff' && selectedTeacherForStaff) ? selectedTeacherForStaff.email : currentUser.email;
           const schoolForCall = (currentUser.role === 'staff' && selectedTeacherForStaff) ? selectedTeacherForStaff.school : selectedSchool;
-          const saveButton = document.getElementById('save-button'); // Ambil elemen tombol
+          const saveButton = document.getElementById('save-button');
+
+          latestRequestToken++;
+          const currentToken = latestRequestToken;
 
           document.getElementById('month-display').innerText = date.toLocaleString('id-ID', { month: 'long', year: 'numeric' });
           document.getElementById('attendance-table-container').innerHTML = '<div>Memuat data...</div>';
-          saveButton.disabled = true; // Nonaktifkan tombol saat data mulai dimuat
+          saveButton.disabled = true;
 
           google.script.run
             .withSuccessHandler(response => {
-              appSettings = response;
+              if (response.token !== latestRequestToken) {
+                return;
+              }
+              appSettings.attendance = response.attendance;
+              appSettings.lockedMonths = response.lockedMonths;
+              appSettings.holidays = response.holidays;
+              appSettings.teacherHolidays = response.teacherHolidays;
               generateMonthTable(year, month, response.attendance);
-              // Tombol akan diaktifkan kembali oleh fungsi generateMonthTable jika bulan tidak dikunci
             })
             .withFailureHandler(error => {
-                // Jika gagal memuat, tombol tetap nonaktif
                 document.getElementById('attendance-table-container').innerHTML = `<p style="color: var(--danger-color);">Gagal memuat data absensi.</p>`;
             })
-            .getAppSettingsForUser(userEmail, schoolForCall, year, month);
+            .getAttendancePageData(userEmail, schoolForCall, year, month, currentToken);
       }
       
       function handleTimeInput(event) {
