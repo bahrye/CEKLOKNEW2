@@ -147,6 +147,45 @@ function getAppSettingsForUser(email, school, year, month) {
   };
 }
 
+function getAttendancePageData(email, school, year, month, token) {
+  const attendanceData = getMonthlyAttendance(email, school, year, month);
+  let lockedMonths = [];
+  try {
+    const settingsData = settingsSheet.getDataRange().getValues();
+    settingsData.forEach(row => {
+      if (row[0] === 'locked_months' && row[1]) {
+        lockedMonths = JSON.parse(row[1]);
+      }
+    });
+  } catch (e) {
+    Logger.log(`Error parsing locked months: ${e.toString()}`);
+  }
+  
+  const today = new Date();
+  if (today.getDate() > 7) {
+    const lastMonthDate = new Date();
+    lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
+    const lastMonthStr = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`;
+    if (!lockedMonths.includes(lastMonthStr)) lockedMonths.push(lastMonthStr);
+  }
+
+  const holidays = {};
+  try {
+    const holidaysData = holidaysSheet.getDataRange().getValues().slice(1);
+    holidaysData.forEach(row => {
+      if (row[0] instanceof Date && row[1]) holidays[Utilities.formatDate(row[0], "GMT", "yyyy-MM-dd")] = row[1];
+    });
+  } catch (e) {
+    Logger.log(`Error parsing holidays: ${e.toString()}`);
+  }
+
+  const teacherHolidays = getTeacherHolidays(email);
+
+  return { 
+    attendance: attendanceData, lockedMonths, holidays, teacherHolidays, token: token 
+  };
+}
+
 function getMonthlyAttendance(email, school, year, month) {
   const attendanceData = {};
   const TIMEZONE = "GMT+8"; 
@@ -510,7 +549,7 @@ function importFromEmis(userEmail, school, fileData) {
 
   } catch (e) {
     Logger.log("Error di importFromEmis: " + e.toString() + " | Stack: " + e.stack);
-    return { status: "error", message: `${e.message}` };
+    return { status: "error", message: `Gagal mengimpor: ${e.message}` };
   } finally {
     if (tempFileId) {
       try { Drive.Files.remove(tempFileId); } catch(e) { Logger.log(`Failed to remove temp file: ${e.toString()}`); }
