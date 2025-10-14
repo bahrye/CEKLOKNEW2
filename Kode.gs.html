@@ -261,26 +261,60 @@ function getAttendanceSummary(userEmail, school, year, month) {
     const teacherHolidays = getTeacherHolidays(userEmail);
     const attendanceData = getMonthlyAttendance(userEmail, school, year, month);
     const daysInMonth = new Date(year, month, 0).getDate();
+    const today = new Date();
+    const todayDate = today.getDate();
+    const isCurrentMonth = today.getFullYear() === year && (today.getMonth() + 1) === month;
 
-    let hariKerja = 0, kehadiran = 0, alpa = 0, alasanLain = 0, liburSekolah = 0;
+    let hariKerja = 0, kehadiran = 0, alpa = 0, alasanLain = 0, liburSekolah = 0, alpaUpToToday = 0;
+    
     for (let day = 1; day <= daysInMonth; day++) {
         const dateObj = new Date(Date.UTC(year, month - 1, day));
         const dateStr = Utilities.formatDate(dateObj, "GMT", "yyyy-MM-dd");
         const dayOfWeek = dateObj.getUTCDay();
+        
         if (dayOfWeek === 0 || nationalHolidays[dateStr]) continue;
+        
         hariKerja++;
         const entry = attendanceData[dateStr];
+        let isWorkingDay = true;
+        
         if (entry) {
-            if (entry.reason) { (entry.reason === "Hari Libur Sekolah" ? liburSekolah++ : alasanLain++); }
-            else if (entry.checkIn && entry.checkOut) { kehadiran++; }
+            if (entry.reason) { 
+              if (entry.reason === "Hari Libur Sekolah") {
+                liburSekolah++;
+                isWorkingDay = false;
+              } else {
+                alasanLain++;
+              }
+            } else if (entry.checkIn && entry.checkOut) {
+                kehadiran++;
+            }
         } else if (dayOfWeek > 0 && teacherHolidays[dayOfWeek - 1]) {
             liburSekolah++;
+            isWorkingDay = false;
+        }
+
+        if (isCurrentMonth && day < todayDate && isWorkingDay && (!entry || (!entry.reason && (!entry.checkIn || !entry.checkOut)))) {
+          alpaUpToToday++;
         }
     }
+
     alpa = Math.max(0, hariKerja - (kehadiran + liburSekolah + alasanLain));
     const totalCeklok = kehadiran + liburSekolah + alasanLain;
     const persentase = (hariKerja > 0) ? Math.round((totalCeklok / hariKerja) * 100) : 0;
-    return { success: true, summary: { hariKerja, kehadiran, alpa, alasan: liburSekolah + alasanLain, persentase, ceklok: totalCeklok } };
+    
+    return { 
+      success: true, 
+      summary: { 
+        hariKerja, 
+        kehadiran, 
+        alpa, 
+        alasan: liburSekolah + alasanLain, 
+        persentase, 
+        ceklok: totalCeklok,
+        alpaUpToToday
+      } 
+    };
   } catch(e) {
     Logger.log("Error di getAttendanceSummary: " + e.message);
     return { success: false, error: "Gagal memuat ringkasan kehadiran." };
@@ -476,7 +510,7 @@ function importFromEmis(userEmail, school, fileData) {
 
   } catch (e) {
     Logger.log("Error di importFromEmis: " + e.toString() + " | Stack: " + e.stack);
-    return { status: "error", message: `Gagal mengimpor: ${e.message}` };
+    return { status: "error", message: `${e.message}` };
   } finally {
     if (tempFileId) {
       try { Drive.Files.remove(tempFileId); } catch(e) { Logger.log(`Failed to remove temp file: ${e.toString()}`); }
@@ -1462,4 +1496,3 @@ function saveLKHWeeklyData(email, school, lkhWeeklyData) {
     return { status: "error", message: "Gagal menyimpan LKH mingguan. Terjadi kesalahan server." };
   }
 }
-    
