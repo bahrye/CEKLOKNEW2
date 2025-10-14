@@ -634,21 +634,43 @@
       // INISIALISASI & OTENTIKASI
       // ===================================================================
       document.addEventListener('DOMContentLoaded', () => {
-        const userSession = sessionStorage.getItem('ceklokUser');
-        const schoolSession = sessionStorage.getItem('ceklokSelectedSchool');
-        if (userSession) {
-          currentUser = JSON.parse(userSession);
-          if (currentUser.role === 'admin' || schoolSession) {
-            selectedSchool = schoolSession;
-            if (currentUser.role === 'admin') {
-              showAdminDashboard(currentUser);
-            } else if (currentUser.role === 'staff') {
-              showStaffDashboard(currentUser);
-            } else {
-              showGuruDashboard(currentUser);
-            }
+        // --- PERUBAHAN DIMULAI ---
+        const token = localStorage.getItem('ceklokAuthToken');
+        if (token) {
+          // Tampilkan pesan loading sementara
+          const loginContainer = document.getElementById("login-container");
+          if(loginContainer.style.display !== 'none') { // Hanya tampilkan jika halaman login aktif
+             loginContainer.innerHTML = '<div class="card"><p>Memverifikasi sesi, mohon tunggu...</p></div>';
           }
+          
+          google.script.run
+            .withSuccessHandler(response => {
+              if (response.status === "success") {
+                // Simpan data user dan sekolah dari localStorage
+                currentUser = JSON.parse(localStorage.getItem('ceklokUser'));
+                selectedSchool = localStorage.getItem('ceklokSelectedSchool');
+                // Lanjutkan ke dashboard yang sesuai
+                if (currentUser.role === 'admin') {
+                  showAdminDashboard(currentUser);
+                } else if (currentUser.role === 'staff') {
+                  showStaffDashboard(currentUser);
+                } else {
+                  showGuruDashboard(currentUser);
+                }
+              } else {
+                // Jika token tidak valid, hapus data dan tampilkan form login
+                handleLogout(); 
+              }
+            })
+            .withFailureHandler(error => {
+              // Jika ada error, logout
+              handleLogout();
+              displayMessage('login-message', "Sesi Anda telah berakhir. Silakan login kembali.");
+            })
+            .verifyToken(token);
         }
+        // --- PERUBAHAN SELESAI ---
+
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
         const loginOnEnter = (event) => {
@@ -676,7 +698,11 @@
             button.disabled = false;
             button.querySelector('span').textContent = "Login";
             if (response.status === "success") {
-              sessionStorage.setItem('ceklokUser', JSON.stringify(response.user));
+              // --- PERUBAHAN DIMULAI ---
+              localStorage.setItem('ceklokAuthToken', response.token);
+              localStorage.setItem('ceklokUser', JSON.stringify(response.user));
+              // --- PERUBAHAN SELESAI ---
+              
               currentUser = response.user;
               
               if (currentUser.role === 'admin') {
@@ -685,7 +711,9 @@
                 showSchoolSelection(currentUser.schools);
               } else if (currentUser.schools && currentUser.schools.length === 1) {
                 selectedSchool = currentUser.schools[0];
-                sessionStorage.setItem('ceklokSelectedSchool', selectedSchool);
+                // --- PERUBAHAN DIMULAI ---
+                localStorage.setItem('ceklokSelectedSchool', selectedSchool);
+                // --- PERUBAHAN SELESAI ---
                 if (currentUser.role === 'staff') {
                     showStaffDashboard(currentUser);
                 } else {
@@ -722,7 +750,9 @@
       function handleSchoolSelection() {
         selectedSchool = document.getElementById('school-select').value;
         if (selectedSchool) {
-          sessionStorage.setItem('ceklokSelectedSchool', selectedSchool);
+          // --- PERUBAHAN DIMULAI ---
+          localStorage.setItem('ceklokSelectedSchool', selectedSchool);
+          // --- PERUBAHAN SELESAI ---
           document.getElementById('school-selection-container').style.display = 'none';
           if (currentUser.role === 'staff') {
             showStaffDashboard(currentUser);
@@ -733,15 +763,45 @@
       }
 
       function handleLogout() {
-        sessionStorage.removeItem('ceklokUser');
-        sessionStorage.removeItem('ceklokSelectedSchool');
+        // --- PERUBAHAN DIMULAI ---
+        const token = localStorage.getItem('ceklokAuthToken');
+        if(token) {
+          // Panggil server untuk menghapus token
+          google.script.run.userLogout(token);
+        }
+        localStorage.removeItem('ceklokUser');
+        localStorage.removeItem('ceklokSelectedSchool');
+        localStorage.removeItem('ceklokAuthToken');
+        // --- PERUBAHAN SELESAI ---
+
         currentUser = null;
         selectedSchool = null;
         currentDate = new Date();
         selectedTeacherForStaff = null;
         schoolTeachers = [];
 
-        document.getElementById("login-container").style.display = "block";
+        // Pastikan kontainer login dikembalikan ke bentuk aslinya
+        const loginContainer = document.getElementById("login-container");
+        loginContainer.innerHTML = `
+           <form id="login-form" onsubmit="event.preventDefault(); handleLogin();">
+               <div class="card">
+                <h2>Ceklok Guru, Staff & Admin</h2>
+                <p>Silakan login untuk melanjutkan</p>
+                <div class="input-group">
+                  <label for="email">Email</label>
+                  <input type="email" id="email" placeholder="Masukkan email Anda" autocomplete="username">
+                </div>
+                <div class="input-group">
+                  <label for="password">Password</label>
+                  <input type="password" id="password" placeholder="Masukkan password" autocomplete="current-password">
+                </div>
+                <button type="submit" id="login-button"><i class="fa-solid fa-right-to-bracket"></i> <span>Login</span></button>
+                <p id="login-message" class="message"></p>
+              </div>
+           </form>
+        `;
+
+        loginContainer.style.display = "block";
         document.getElementById("school-selection-container").style.display = "none";
         document.getElementById("guru-dashboard-container").style.display = "none";
         document.getElementById("staff-dashboard-container").style.display = "none";
@@ -756,14 +816,8 @@
         document.getElementById("lkh-container").style.display = "none";
         document.getElementById("lkh-view-container").style.display = "none";
         document.getElementById("lkh-weekly-container").style.display = "none";
-        document.getElementById('email').value = "";
-        document.getElementById('password').value = "";
+        
         displayMessage('login-message', "Anda berhasil logout.", { isSuccess: true });
-        const loginButton = document.getElementById('login-button');
-        if (loginButton) {
-          loginButton.disabled = false;
-          loginButton.querySelector('span').textContent = 'Login';
-        }
       }
 
       function goBackToDashboard() {
@@ -840,15 +894,15 @@
         closeSchoolSwitcherModal();
         if (newSchool && newSchool !== selectedSchool) {
           selectedSchool = newSchool;
-          sessionStorage.setItem('ceklokSelectedSchool', selectedSchool);
+          // --- PERUBAHAN DIMULAI ---
+          localStorage.setItem('ceklokSelectedSchool', selectedSchool);
+          // --- PERUBAHAN SELESAI ---
           
-          // MODIFIKASI DIMULAI DI SINI
           if (currentUser.role === 'guru') {
             showGuruDashboard(); 
           } else if (currentUser.role === 'staff') {
             showStaffDashboard();
           }
-          // MODIFIKASI SELESAI
         }
       }
 
