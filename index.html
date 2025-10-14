@@ -44,7 +44,7 @@
           <h2 id="guru-welcome-message"></h2>
           
           <div id="announcement-section">
-            <h3>Pengumuman</h3>
+            <h3><i class="fa-solid fa-bullhorn"></i> Pengumuman</h3>
             <p id="announcement-text">Tidak ada pengumuman saat ini.</p>
           </div>
 
@@ -142,7 +142,7 @@
         <div class="card">
           <h2 id="staff-welcome-message"></h2>
           <div id="staff-announcement-section">
-            <h3>Pengumuman</h3>
+            <h3><i class="fa-solid fa-bullhorn"></i> Pengumuman</h3>
             <p id="staff-announcement-text">Tidak ada pengumuman saat ini.</p>
           </div>
           
@@ -501,7 +501,7 @@
       function handleDownloadSptjmPdf() {
           const button = document.getElementById('download-sptjm-pdf-button');
           button.disabled = true;
-          button.textContent = 'Membuat PDF...';
+          button.querySelector('span').textContent = 'Membuat PDF...';
           displayMessage('sptjm-download-message', 'Sedang memproses & membuat PDF, mohon tunggu...', { isProcessing: true });
 
           // Mengumpulkan semua data dari tampilan untuk dikirim ke server
@@ -532,12 +532,12 @@
                       displayMessage('sptjm-download-message', 'Error: ' + response.error);
                   }
                   button.disabled = false;
-                  button.textContent = 'Unduh PDF';
+                  button.querySelector('span').textContent = 'Unduh PDF';
               })
               .withFailureHandler(error => {
                   displayMessage('sptjm-download-message', 'Error: ' + error.message);
                   button.disabled = false;
-                  button.textContent = 'Unduh PDF';
+                  button.querySelector('span').textContent = 'Unduh PDF';
               })
               .generateSptjmPdf(data);
       }
@@ -595,7 +595,7 @@
       function handleSaveLKHWeekly() {
         const button = document.getElementById('save-lkh-weekly-button');
         button.disabled = true;
-        button.textContent = "Menyimpan...";
+        button.querySelector('span').textContent = "Menyimpan...";
         displayMessage('lkh-weekly-message', 'Menyimpan data LKH mingguan...', { isProcessing: true });
         
         const lkhWeeklyData = {};
@@ -619,12 +619,12 @@
               displayMessage('lkh-weekly-message', response.message);
             }
             button.disabled = false;
-            button.textContent = "Simpan LKH Mingguan";
+            button.querySelector('span').textContent = "Simpan LKH Mingguan";
           })
           .withFailureHandler(error => {
             displayMessage('lkh-weekly-message', 'Error: ' + error.message);
             button.disabled = false;
-            button.textContent = "Simpan LKH Mingguan";
+            button.querySelector('span').textContent = "Simpan LKH Mingguan";
           })
           .saveLKHWeeklyData(currentUser.email, selectedSchool, lkhWeeklyData);
       }
@@ -669,11 +669,11 @@
           return;
         }
         button.disabled = true;
-        button.textContent = "Mencoba Login...";
+        button.querySelector('span').textContent = "Mencoba Login...";
         google.script.run
           .withSuccessHandler(response => {
             button.disabled = false;
-            button.textContent = "Login";
+            button.querySelector('span').textContent = "Login";
             if (response.status === "success") {
               sessionStorage.setItem('ceklokUser', JSON.stringify(response.user));
               currentUser = response.user;
@@ -700,7 +700,7 @@
           .withFailureHandler(error => {
             displayMessage('login-message', "Error: " + error.message);
             button.disabled = false;
-            button.textContent = "Login";
+            button.querySelector('span').textContent = "Login";
           })
           .userLogin(email, password);
       }
@@ -761,7 +761,7 @@
         const loginButton = document.getElementById('login-button');
         if (loginButton) {
           loginButton.disabled = false;
-          loginButton.textContent = 'Login';
+          loginButton.querySelector('span').textContent = 'Login';
         }
       }
 
@@ -1156,14 +1156,14 @@
           }
 
           button.disabled = true;
-          button.textContent = "Menyimpan...";
+          button.querySelector('span').textContent = "Menyimpan...";
           displayMessage('save-message', 'Menyimpan data...', { isProcessing: true });
 
           google.script.run
               .withSuccessHandler(r => {
                   displayMessage('save-message', r.message, { isSuccess: true });
                   button.disabled = false;
-                  button.textContent = "Simpan Semua Perubahan";
+                  button.querySelector('span').textContent = "Simpan Semua Perubahan";
                   loadMonthData(currentDate); 
                   if (currentUser.role === 'guru') loadAndRenderSummary();
                   else if (currentUser.role === 'staff') loadStaffSummary();
@@ -1171,7 +1171,7 @@
               .withFailureHandler(e => {
                   displayMessage('save-message', "Error: " + e.message);
                   button.disabled = false;
-                  button.textContent = "Simpan Semua Perubahan";
+                  button.querySelector('span').textContent = "Simpan Semua Perubahan";
               })
               .saveMonthlyAttendance(payload);
       }
@@ -1226,6 +1226,7 @@
       function renderSummary(summary) {
           const kehadiranEl = document.getElementById('summary-kehadiran');
           const alpaEl = document.getElementById('summary-alpa');
+          const alpaBox = alpaEl.parentElement; // Ambil elemen kotak 'Alpa'
           const persentaseEl = document.getElementById('summary-persentase');
           const ceklokEl = document.getElementById('summary-ceklok');
 
@@ -1244,11 +1245,16 @@
               kehadiranEl.style.color = 'var(--danger-color)';
           }
 
+          // --- MODIFIKASI DI SINI ---
+          // Logika untuk menambahkan atau menghapus efek api
           if (parseInt(summary.alpa) > 0) {
               alpaEl.style.color = 'var(--danger-color)';
+              alpaBox.classList.add('alpa-warning'); // Tambahkan kelas jika ada alpa
           } else {
               alpaEl.style.color = 'var(--success-color)';
+              alpaBox.classList.remove('alpa-warning'); // Hapus kelas jika tidak ada alpa
           }
+          // --- AKHIR MODIFIKASI ---
 
           const percentage = parseInt(summary.persentase);
           let persentaseColor;
@@ -1284,7 +1290,7 @@
       function loadTeacherHolidays() {
         const button = document.getElementById('save-teacher-holidays-button');
         button.disabled = true;
-        button.textContent = 'Memuat...';
+        button.querySelector('span').textContent = 'Memuat...';
         google.script.run
             .withSuccessHandler(settings => {
                 if (settings && settings.length === 6) {
@@ -1294,12 +1300,12 @@
                     });
                 }
                 button.disabled = false;
-                button.textContent = 'Simpan Pengaturan';
+                button.querySelector('span').textContent = 'Simpan Pengaturan';
             })
             .withFailureHandler(err => {
                 displayMessage('teacher-holidays-message', 'Gagal memuat pengaturan: ' + err.message);
                 button.disabled = false;
-                button.textContent = 'Simpan Pengaturan';
+                button.querySelector('span').textContent = 'Simpan Pengaturan';
             })
             .getTeacherHolidays(currentUser.email);
       }
@@ -1311,17 +1317,17 @@
               settings.push(document.getElementById(`day-switch-${i}`).checked);
           }
           button.disabled = true;
-          button.textContent = 'Menyimpan...';
+          button.querySelector('span').textContent = 'Menyimpan...';
           google.script.run
               .withSuccessHandler(response => {
                   displayMessage('teacher-holidays-message', response.message, { isSuccess: true });
                   button.disabled = false;
-                  button.textContent = 'Simpan Pengaturan';
+                  button.querySelector('span').textContent = 'Simpan Pengaturan';
               })
               .withFailureHandler(err => {
                   displayMessage('teacher-holidays-message', 'Gagal menyimpan: ' + err.message);
                   button.disabled = false;
-                  button.textContent = 'Simpan Pengaturan';
+                  button.querySelector('span').textContent = 'Simpan Pengaturan';
               })
               .saveTeacherHolidays(currentUser.email, settings);
       }
@@ -1335,7 +1341,7 @@
           }
           const button = document.getElementById('import-emis-button');
           button.disabled = true;
-          button.textContent = 'Mengimpor...';
+          button.querySelector('span').textContent = 'Mengimpor...';
           displayMessage('emis-import-message', 'Sedang mengunggah dan memproses file...', { isProcessing: true });
           
           const schoolForImport = (currentUser.role === 'staff' && selectedTeacherForStaff) ? selectedTeacherForStaff.school : selectedSchool;
@@ -1353,7 +1359,7 @@
               google.script.run
                   .withSuccessHandler(response => {
                       button.disabled = false;
-                      button.textContent = 'Proses Import';
+                      button.querySelector('span').textContent = 'Proses Import';
                       if (response.status === 'success') {
                           const successMsg = `Berhasil mengimpor ${response.count} data untuk bulan ${response.monthName}. Anda akan dialihkan...`;
                           displayMessage('emis-import-message', successMsg, { isSuccess: true });
@@ -1374,7 +1380,7 @@
                   .withFailureHandler(error => {
                       displayMessage('emis-import-message', 'Error: ' + error.message);
                       button.disabled = false;
-                      button.textContent = 'Proses Import';
+                      button.querySelector('span').textContent = 'Proses Import';
                   })
                   .importFromEmis(targetEmail, schoolForImport, fileData);
           };
@@ -1398,7 +1404,7 @@
         }
 
         button.disabled = true;
-        button.textContent = 'Membuat File...';
+        button.querySelector('span').textContent = 'Membuat File...';
         displayMessage('emis-export-message', 'Sedang memproses & membuat file Excel, mohon tunggu...', { isProcessing: true });
         
         google.script.run
@@ -1415,12 +1421,12 @@
               displayMessage('emis-export-message', 'Error: ' + response.message);
             }
             button.disabled = false;
-            button.textContent = 'Download Template';
+            button.querySelector('span').textContent = 'Download Template';
           })
           .withFailureHandler(error => {
             displayMessage('emis-export-message', 'Error: ' + error.message);
             button.disabled = false;
-            button.textContent = 'Download Template';
+            button.querySelector('span').textContent = 'Download Template';
           })
           .exportToExcel(targetEmail, schoolForExport, monthInput, lockIdInput);
       }
@@ -1580,7 +1586,7 @@
               return;
           }
           button.disabled = true;
-          button.textContent = 'Membuat PDF...';
+          button.querySelector('span').textContent = 'Membuat PDF...';
           displayMessage('staff-rekap-all-message', 'Sedang memproses rekap semua guru...', { isProcessing: true });
           google.script.run
               .withSuccessHandler(response => {
@@ -1596,12 +1602,12 @@
                       displayMessage('staff-rekap-all-message', 'Error: ' + response.error);
                   }
                   button.disabled = false;
-                  button.textContent = 'Unduh Rekap Semua Guru';
+                  button.querySelector('span').textContent = 'Unduh Rekap Semua Guru';
               })
               .withFailureHandler(error => {
                   displayMessage('staff-rekap-all-message', 'Error: ' + error.message);
                   button.disabled = false;
-                  button.textContent = 'Unduh Rekap Semua Guru';
+                  button.querySelector('span').textContent = 'Unduh Rekap Semua Guru';
               })
               .prepareSchoolRekapForPrint(currentUser.email, monthInput, selectedSchool);
       }
@@ -1770,7 +1776,7 @@
               return;
           }
           button.disabled = true;
-          button.textContent = 'Membuat PDF...';
+          button.querySelector('span').textContent = 'Membuat PDF...';
           displayMessage('rekap-message', 'Sedang memproses & membuat PDF, mohon tunggu...', { isProcessing: true });
           google.script.run
               .withSuccessHandler(response => {
@@ -1786,12 +1792,12 @@
                       displayMessage('rekap-message', 'Error: ' + response.error);
                   }
                   button.disabled = false;
-                  button.textContent = 'Buat Rekap & Unduh';
+                  button.querySelector('span').textContent = 'Buat Rekap & Unduh';
               })
               .withFailureHandler(error => {
                   displayMessage('rekap-message', 'Error: ' + error.message);
                   button.disabled = false;
-                  button.textContent = 'Buat Rekap & Unduh';
+                  button.querySelector('span').textContent = 'Buat Rekap & Unduh';
               })
               .prepareMonthlyRekapForPrint(currentUser.email, monthInput, schoolInput);
       }
@@ -1814,7 +1820,7 @@
               return;
           }
           button.disabled = true;
-          button.textContent = 'Membuat PDF...';
+          button.querySelector('span').textContent = 'Membuat PDF...';
           displayMessage('guru-rekap-message', 'Sedang memproses & membuat PDF, mohon tunggu...', { isProcessing: true });
           google.script.run
               .withSuccessHandler(response => {
@@ -1830,12 +1836,12 @@
                       displayMessage('guru-rekap-message', 'Error: ' + response.error);
                   }
                   button.disabled = false;
-                  button.textContent = 'Buat & Unduh Rekap Saya';
+                  button.querySelector('span').textContent = 'Buat & Unduh Rekap Saya';
               })
               .withFailureHandler(error => {
                   displayMessage('guru-rekap-message', 'Error: ' + error.message);
                   button.disabled = false;
-                  button.textContent = 'Buat & Unduh Rekap Saya';
+                  button.querySelector('span').textContent = 'Buat & Unduh Rekap Saya';
               })
               .prepareMyRekapForPrint(currentUser.email, selectedSchool, monthInput);
       }
@@ -1852,7 +1858,7 @@
               return;
           }
           button.disabled = true;
-          button.textContent = 'Membuat PDF...';
+          button.querySelector('span').textContent = 'Membuat PDF...';
           displayMessage('guru-rekap-all-message', 'Sedang memproses rekap semua guru, ini mungkin perlu waktu lebih lama...', { isProcessing: true });
           google.script.run
               .withSuccessHandler(response => {
@@ -1868,12 +1874,12 @@
                       displayMessage('guru-rekap-all-message', 'Error: ' + response.error);
                   }
                   button.disabled = false;
-                  button.textContent = 'Unduh Rekap Semua Guru (Satu Sekolah)';
+                  button.querySelector('span').textContent = 'Unduh Rekap Semua Guru (Satu Sekolah)';
               })
               .withFailureHandler(error => {
                   displayMessage('guru-rekap-all-message', 'Error: ' + error.message);
                   button.disabled = false;
-                  button.textContent = 'Unduh Rekap Semua Guru (Satu Sekolah)';
+                  button.querySelector('span').textContent = 'Unduh Rekap Semua Guru (Satu Sekolah)';
               })
               .prepareSchoolRekapForPrint(currentUser.email, monthInput, selectedSchool);
       }
@@ -1952,7 +1958,7 @@
       function handleSaveLKH() {
         const button = document.getElementById('save-lkh-button');
         button.disabled = true;
-        button.textContent = "Menyimpan...";
+        button.querySelector('span').textContent = "Menyimpan...";
         displayMessage('lkh-message', 'Menyimpan data LKH...', { isProcessing: true });
         
         const monthInputValue = document.getElementById('lkh-month-input').value;
@@ -1978,12 +1984,12 @@
               displayMessage('lkh-message', response.message);
             }
             button.disabled = false;
-            button.textContent = "Simpan LKH";
+            button.querySelector('span').textContent = "Simpan LKH";
           })
           .withFailureHandler(error => {
             displayMessage('lkh-message', 'Error: ' + error.message);
             button.disabled = false;
-            button.textContent = "Simpan LKH";
+            button.querySelector('span').textContent = "Simpan LKH";
           })
           .saveLKHData(currentUser.email, selectedSchool, year, month, lkhData);
       }
@@ -2057,7 +2063,7 @@
       function handleDownloadLkhPdf() {
           const button = document.getElementById('download-lkh-pdf-button');
           button.disabled = true;
-          button.textContent = 'Membuat PDF...';
+          button.querySelector('span').textContent = 'Membuat PDF...';
           displayMessage('lkh-download-message', 'Sedang memproses & membuat PDF, mohon tunggu...', { isProcessing: true });
           
           // --- PERUBAHAN ---
@@ -2079,12 +2085,12 @@
                       displayMessage('lkh-download-message', 'Error: ' + response.error);
                   }
                   button.disabled = false;
-                  button.textContent = 'Unduh PDF';
+                  button.querySelector('span').textContent = 'Unduh PDF';
               })
               .withFailureHandler(error => {
                   displayMessage('lkh-download-message', 'Error: ' + error.message);
                   button.disabled = false;
-                  button.textContent = 'Unduh PDF';
+                  button.querySelector('span').textContent = 'Unduh PDF';
               })
               .generateLkhPdf(currentUser.email, selectedSchool, monthInput);
       }
@@ -2096,7 +2102,7 @@
       function handleApplyWeeklyData() {
         const button = document.getElementById('apply-weekly-data-button');
         button.disabled = true;
-        button.textContent = 'Mengambil data...';
+        button.querySelector('span').textContent = 'Mengambil data...';
         // Mengarahkan pesan ke elemen baru di sebelah tombol
         displayMessage('apply-weekly-data-message', 'Mengambil data mingguan...', { isProcessing: true });
 
@@ -2151,13 +2157,13 @@
               displayMessage('apply-weekly-data-message', 'Gagal mengambil data mingguan atau tidak ada data tersimpan.');
             }
             button.disabled = false;
-            button.textContent = 'Ambil Data Mingguan';
+            button.querySelector('span').textContent = 'Ambil Data Mingguan';
           })
           .withFailureHandler(error => {
             // Menampilkan pesan error di sebelah tombol
             displayMessage('apply-weekly-data-message', 'Error: ' + error.message);
             button.disabled = false;
-            button.textContent = 'Ambil Data Mingguan';
+            button.querySelector('span').textContent = 'Ambil Data Mingguan';
           })
           .getLKHWeeklyData(currentUser.email);
       }
