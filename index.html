@@ -1176,25 +1176,17 @@
               .saveMonthlyAttendance(payload);
       }
 
-      function loadAndRenderSummary(year, month) {
+      function loadAndRenderSummary() {
           const summaryMonthInput = document.getElementById('summary-month-input');
-          let targetYear, targetMonth;
-
-          if (year && month) {
-              targetYear = year;
-              targetMonth = month;
-          } else {
-              const monthInputValue = summaryMonthInput.value;
-              if (monthInputValue) {
-                  [targetYear, targetMonth] = monthInputValue.split('-').map(Number);
-              } else {
-                  const today = new Date();
-                  targetYear = today.getFullYear();
-                  targetMonth = today.getMonth() + 1;
-              }
-          }
           
-          summaryMonthInput.value = `${targetYear}-${String(targetMonth).padStart(2, '0')}`;
+          if (!summaryMonthInput.value) {
+              const today = new Date();
+              const year = today.getFullYear();
+              const month = today.getMonth() + 1;
+              summaryMonthInput.value = `${year}-${String(month).padStart(2, '0')}`;
+          }
+
+          const [targetYear, targetMonth] = summaryMonthInput.value.split('-').map(Number);
 
           const summaryValues = document.querySelectorAll('.summary-value');
           summaryValues.forEach(el => el.innerText = '...');
@@ -1216,47 +1208,51 @@
       }
 
       function handleSummaryMonthChange() {
-        const monthInputValue = document.getElementById('summary-month-input').value;
-        if (monthInputValue) {
-          const [year, month] = monthInputValue.split('-').map(Number);
-          loadAndRenderSummary(year, month);
-        }
+        loadAndRenderSummary();
       }
       
       function renderSummary(summary) {
           const kehadiranEl = document.getElementById('summary-kehadiran');
           const alpaEl = document.getElementById('summary-alpa');
-          const alpaBox = alpaEl.parentElement; // Ambil elemen kotak 'Alpa'
+          const alpaBox = alpaEl.parentElement;
           const persentaseEl = document.getElementById('summary-persentase');
           const ceklokEl = document.getElementById('summary-ceklok');
+          const alasanEl = document.getElementById('summary-alasan');
 
           document.getElementById('summary-hari-kerja').innerText = summary.hariKerja;
           kehadiranEl.innerText = summary.kehadiran;
           alpaEl.innerText = summary.alpa;
-          document.getElementById('summary-alasan').innerText = summary.alasan;
+          alasanEl.innerText = summary.alasan;
           persentaseEl.innerText = summary.persentase + '%';
           ceklokEl.innerText = summary.ceklok;
 
-          if (parseInt(summary.persentase) === 100) {
+          const percentage = parseInt(summary.persentase);
+
+          if (percentage === 100) {
               kehadiranEl.style.color = 'var(--success-color)';
+              alasanEl.style.color = 'var(--success-color)';
           } else if (parseInt(summary.kehadiran) > 0) {
-              kehadiranEl.style.color = 'var(--primary-color)';
+              kehadiranEl.style.color = 'var(--warning-color)';
+              alasanEl.style.color = 'var(--primary-color)';
           } else {
               kehadiranEl.style.color = 'var(--danger-color)';
+              alasanEl.style.color = 'var(--primary-color)';
           }
 
-          // --- MODIFIKASI DI SINI ---
-          // Logika untuk menambahkan atau menghapus efek api
+          // Logika untuk warna angka Alpa
           if (parseInt(summary.alpa) > 0) {
               alpaEl.style.color = 'var(--danger-color)';
-              alpaBox.classList.add('alpa-warning'); // Tambahkan kelas jika ada alpa
           } else {
               alpaEl.style.color = 'var(--success-color)';
-              alpaBox.classList.remove('alpa-warning'); // Hapus kelas jika tidak ada alpa
           }
-          // --- AKHIR MODIFIKASI ---
+          
+          // Logika untuk menambahkan atau menghapus efek glow
+          if (summary.alpaUpToToday > 0) {
+              alpaBox.classList.add('alpa-warning');
+          } else {
+              alpaBox.classList.remove('alpa-warning');
+          }
 
-          const percentage = parseInt(summary.persentase);
           let persentaseColor;
           if (percentage === 100) {
               persentaseColor = 'var(--success-color)';
