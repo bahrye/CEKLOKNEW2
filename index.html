@@ -634,42 +634,53 @@
       // INISIALISASI & OTENTIKASI
       // ===================================================================
       document.addEventListener('DOMContentLoaded', () => {
-        // --- PERUBAHAN DIMULAI ---
         const token = localStorage.getItem('ceklokAuthToken');
         if (token) {
-          // Tampilkan pesan loading sementara
-          const loginContainer = document.getElementById("login-container");
-          if(loginContainer.style.display !== 'none') { // Hanya tampilkan jika halaman login aktif
-             loginContainer.innerHTML = '<div class="card"><p>Memverifikasi sesi, mohon tunggu...</p></div>';
+          // --- PERUBAHAN DIMULAI (LOGIKA BARU) ---
+          // 1. Langsung coba tampilkan dasbor dari localStorage
+          try {
+            currentUser = JSON.parse(localStorage.getItem('ceklokUser'));
+            selectedSchool = localStorage.getItem('ceklokSelectedSchool');
+
+            if (currentUser && selectedSchool) {
+              if (currentUser.role === 'admin') {
+                showAdminDashboard(currentUser);
+              } else if (currentUser.role === 'staff') {
+                showStaffDashboard(currentUser);
+              } else {
+                showGuruDashboard(currentUser);
+              }
+            } else {
+                // Jika data di localStorage tidak lengkap, tampilkan login
+                document.getElementById("login-container").style.display = 'block';
+            }
+          } catch (e) {
+              // Jika ada error saat parsing, fallback ke halaman login
+              document.getElementById("login-container").style.display = 'block';
           }
-          
+          // --- AKHIR PERUBAHAN (LOGIKA BARU) ---
+
+          // 2. Lakukan verifikasi token di latar belakang
           google.script.run
             .withSuccessHandler(response => {
-              if (response.status === "success") {
-                // Simpan data user dan sekolah dari localStorage
-                currentUser = JSON.parse(localStorage.getItem('ceklokUser'));
-                selectedSchool = localStorage.getItem('ceklokSelectedSchool');
-                // Lanjutkan ke dashboard yang sesuai
-                if (currentUser.role === 'admin') {
-                  showAdminDashboard(currentUser);
-                } else if (currentUser.role === 'staff') {
-                  showStaffDashboard(currentUser);
-                } else {
-                  showGuruDashboard(currentUser);
-                }
-              } else {
-                // Jika token tidak valid, hapus data dan tampilkan form login
-                handleLogout(); 
+              if (response.status !== "success") {
+                // Jika token tidak valid, logout pengguna
+                handleLogout();
+                displayMessage('login-message', "Sesi Anda telah berakhir. Silakan login kembali.");
               }
+              // Jika sukses, tidak perlu melakukan apa-apa karena dasbor sudah ditampilkan
             })
             .withFailureHandler(error => {
-              // Jika ada error, logout
+              // Jika verifikasi gagal, logout pengguna
               handleLogout();
-              displayMessage('login-message', "Sesi Anda telah berakhir. Silakan login kembali.");
+              displayMessage('login-message', "Gagal memverifikasi sesi. Silakan login kembali.");
             })
             .verifyToken(token);
+
+        } else {
+            // Jika tidak ada token, pastikan halaman login ditampilkan
+            document.getElementById("login-container").style.display = 'block';
         }
-        // --- PERUBAHAN SELESAI ---
 
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
