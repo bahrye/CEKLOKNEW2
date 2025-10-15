@@ -84,14 +84,20 @@ function getUrutanNamaSheet_() {
   return sheet;
 }
 
-function getAttendanceSheet_(year, month) {
+/**
+ * Mendapatkan sheet absensi berdasarkan tahun dan bulan.
+ * PERUBAHAN: Menambahkan parameter createIfNotExist untuk mengontrol pembuatan sheet.
+ * Jika sheet tidak ada dan createIfNotExist adalah false, fungsi akan mengembalikan null.
+ */
+function getAttendanceSheet_(year, month, createIfNotExist = false) {
   const monthStr = String(month).padStart(2, '0');
   const yearStr = String(year).slice(-2);
   const sheetName = `Attendance_${monthStr}_${yearStr}`;
   
   let sheet = ss.getSheetByName(sheetName);
   
-  if (!sheet) {
+  // Hanya buat sheet jika belum ada DAN diizinkan (createIfNotExist = true)
+  if (!sheet && createIfNotExist) {
     sheet = ss.insertSheet(sheetName);
     const headers = [
       "Timestamp", "Email", "Nama", "Sekolah", "Tanggal", 
@@ -103,7 +109,7 @@ function getAttendanceSheet_(year, month) {
     sheet.getRange("F:G").setNumberFormat("@");
   }
   
-  return sheet;
+  return sheet; // Akan mengembalikan null jika sheet tidak ditemukan & createIfNotExist = false
 }
 
 function doGet() {
@@ -278,8 +284,10 @@ function getMonthlyAttendance(email, school, year, month) {
   const attendanceData = {};
   const TIMEZONE = "GMT+8"; 
   try {
-    const sheet = getAttendanceSheet_(year, month);
-    if (sheet.getLastRow() < 2) return {}; 
+    // PERUBAHAN: Memanggil getAttendanceSheet_ tanpa membuat sheet baru jika tidak ada.
+    const sheet = getAttendanceSheet_(year, month, false);
+    // PERUBAHAN: Jika sheet tidak ada (null) atau kosong, langsung kembalikan object kosong.
+    if (!sheet || sheet.getLastRow() < 2) return {}; 
     
     const data = sheet.getRange(2, 1, sheet.getLastRow() - 1, 8).getValues();
 
@@ -316,7 +324,8 @@ function saveMonthlyAttendance(payload) {
     const year = d.getUTCFullYear();
     const month = d.getUTCMonth() + 1;
 
-    const sheet = getAttendanceSheet_(year, month);
+    // PERUBAHAN: Memanggil getAttendanceSheet_ dengan izin untuk membuat sheet jika belum ada.
+    const sheet = getAttendanceSheet_(year, month, true);
     const allData = sheet.getDataRange().getValues();
     const TIMEZONE = "GMT+8";
     const existingRecords = {};
@@ -376,6 +385,11 @@ function saveMonthlyAttendance(payload) {
   }
 }
 
+/**
+ * Mendapatkan ringkasan absensi.
+ * PERUBAHAN: Perhitungan libur dari setting guru (teacherHolidays)
+ * hanya berlaku untuk bulan berjalan (isCurrentMonth).
+ */
 function getAttendanceSummary(userEmail, school, year, month) {
   try {
     const holidaysData = holidaysSheet.getDataRange().getValues().slice(1);
@@ -416,7 +430,9 @@ function getAttendanceSummary(userEmail, school, year, month) {
             } else if (entry.checkIn && entry.checkOut) {
                 kehadiran++;
             }
-        } else if (dayOfWeek > 0 && teacherHolidays[dayOfWeek - 1]) {
+        // PERUBAHAN: Tambahkan kondisi 'isCurrentMonth' di sini.
+        // Libur guru hanya dihitung jika data absensi kosong DAN merupakan bulan berjalan.
+        } else if (isCurrentMonth && dayOfWeek > 0 && teacherHolidays[dayOfWeek - 1]) {
             liburSekolah++;
             isWorkingDay = false;
         }
@@ -681,8 +697,10 @@ function generateRekapPDF(selectedMonthYear, selectedSchool, singleUserEmail) {
     const mm = parseInt(mmStr, 10);
     const TIMEZONE = "GMT+8";
 
-    const attendanceSheetForMonth = getAttendanceSheet_(yyyy, mm);
-    const attendanceValues = attendanceSheetForMonth.getLastRow() > 1 ? attendanceSheetForMonth.getRange(2, 1, attendanceSheetForMonth.getLastRow() - 1, 8).getValues() : [];
+    // PERUBAHAN: Memanggil getAttendanceSheet_ tanpa membuat sheet baru.
+    const attendanceSheetForMonth = getAttendanceSheet_(yyyy, mm, false);
+    // PERUBAHAN: Menangani jika sheet tidak ada (null).
+    const attendanceValues = attendanceSheetForMonth && attendanceSheetForMonth.getLastRow() > 1 ? attendanceSheetForMonth.getRange(2, 1, attendanceSheetForMonth.getLastRow() - 1, 8).getValues() : [];
 
     const allUsers = usersSheet.getDataRange().getValues().slice(1);
     let daftarGuru, fileNameSchoolPart;
