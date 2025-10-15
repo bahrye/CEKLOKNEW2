@@ -1098,11 +1098,16 @@
           const currentYear = today.getFullYear();
           const currentMonth = today.getMonth() + 1;
           const isFutureMonth = year > currentYear || (year === currentYear && month > currentMonth);
+          
+          // **VARIABEL KUNCI**
+          const isDisabled = isMonthLocked || isFutureMonth;
+
           let lockMessage = "";
           if(isMonthLocked) lockMessage = 'Absensi untuk bulan ini telah dikunci.';
           else if (isFutureMonth) lockMessage = 'Anda belum bisa mengisi absensi untuk bulan depan.';
           document.getElementById('global-lock-message').innerText = lockMessage;
-          document.getElementById('save-button').disabled = isMonthLocked || isFutureMonth;
+          document.getElementById('save-button').disabled = isDisabled;
+
           let tableHTML = '<div class="table-scroll-wrapper"><table><thead><tr><th>Tanggal</th><th>Jam Masuk</th><th>Jam Pulang</th><th>Keterangan</th><th>Aksi</th></tr></thead><tbody>';
           
           for (let day = 1; day <= daysInMonth; day++) {
@@ -1120,11 +1125,15 @@
             } else if (isSunday) {
               tableHTML += `<tr id="row-${dateStr}" class="sunday-row"><td>${day} <small>(${dayName})</small></td><td colspan="3">Hari Libur</td><td></td></tr>`;
             } 
-            else if (isTeacherHoliday && (!existingData || (existingData.checkIn === "" && existingData.checkOut === "" && existingData.reason === ""))) {
-                tableHTML += `<tr id="row-${dateStr}"><td>${day} <small>(${dayName})</small></td><td><input type="text" class="time-entry" id="in-${dateStr}" disabled></td><td><input type="text" class="time-entry" id="out-${dateStr}" disabled></td><td><select id="reason-${dateStr}" onchange="handleReasonChange(event)">${teacherHolidayReasonOptions}</select></td><td><button class="clear-btn" onclick="handleClearRow(event)">Hapus</button></td></tr>`;
+            // --- PERUBAHAN UTAMA DI SINI ---
+            else if (!isFutureMonth && isTeacherHoliday && (!existingData || (existingData.checkIn === "" && existingData.checkOut === "" && existingData.reason === ""))) {
+                // Perhatikan penambahan 'isDisabled' pada <select> dan <button>
+                tableHTML += `<tr id="row-${dateStr}"><td>${day} <small>(${dayName})</small></td><td><input type="text" class="time-entry" id="in-${dateStr}" disabled></td><td><input type="text" class="time-entry" id="out-${dateStr}" disabled></td><td><select id="reason-${dateStr}" onchange="handleReasonChange(event)" ${isDisabled ? 'disabled' : ''}>${teacherHolidayReasonOptions}</select></td><td><button class="clear-btn" onclick="handleClearRow(event)" ${isDisabled ? 'disabled' : ''}>Hapus</button></td></tr>`;
             }
+            // --- AKHIR PERUBAHAN ---
             else {
-              const isDisabled = isMonthLocked || isFutureMonth;
+              // Blok ini sudah benar, tidak perlu diubah.
+              // Variabel 'isDisabled' sudah diterapkan dengan benar di sini.
               tableHTML += `<tr id="row-${dateStr}"><td>${day} <small>(${dayName})</small></td><td><input type="text" class="time-entry" id="in-${dateStr}" placeholder="HH:MM" maxlength="5" inputmode="numeric" oninput="handleTimeInput(event)" ${isDisabled ? 'disabled' : ''}></td><td><input type="text" class="time-entry" id="out-${dateStr}" placeholder="HH:MM" maxlength="5" inputmode="numeric" oninput="handleTimeInput(event)" ${isDisabled ? 'disabled' : ''}></td><td><select id="reason-${dateStr}" ${isDisabled ? 'disabled' : ''} onchange="handleReasonChange(event)">${reasonOptions}</select></td><td><button class="clear-btn" onclick="handleClearRow(event)" ${isDisabled ? 'disabled' : ''}>Hapus</button></td></tr>`;
             }
           }
