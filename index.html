@@ -79,6 +79,9 @@
                       <span class="summary-label">Ceklok</span>
                   </div>
               </div>
+               <button onclick="showAllTeacherSummary()" id="view-all-summary-button" class="action-button secondary" style="margin-top: 15px;">
+                <i class="fa-solid fa-users"></i> <span>Lihat Ringkasan Kehadiran Sekolah</span>
+              </button>
           </div>
           <hr style="margin: 25px 0;">
           
@@ -133,6 +136,22 @@
           <hr style="margin: 25px 0; border: none; border-top: 1px solid #E5E7EB;">
 
           <button class="logout" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span></button>
+        </div>
+      </div>
+      
+      <div id="all-teachers-summary-container" style="display:none;">
+        <div class="card">
+          <button class="back-button" onclick="goBackToDashboard()">&larr; Kembali ke Dasbor</button>
+          <h2 style="margin-top: 15px;" id="all-teachers-summary-title">Ringkasan Kehadiran Sekolah</h2>
+          
+          <div class="input-group">
+              <label for="all-teachers-summary-month-input">Pilih Bulan dan Tahun</label>
+              <input type="month" id="all-teachers-summary-month-input" onchange="loadAllTeacherSummaryData()">
+          </div>
+          
+          <div id="all-teachers-summary-table-container">
+            <p>Memuat ringkasan guru...</p>
+          </div>
         </div>
       </div>
 
@@ -827,7 +846,8 @@
         document.getElementById("lkh-container").style.display = "none";
         document.getElementById("lkh-view-container").style.display = "none";
         document.getElementById("lkh-weekly-container").style.display = "none";
-        
+        document.getElementById("all-teachers-summary-container").style.display = "none";
+
         displayMessage('login-message', "Anda berhasil logout.", { isSuccess: true });
       }
 
@@ -853,6 +873,7 @@
           document.getElementById("emis-export-container").style.display = "none";
           document.getElementById("lkh-sptjm-dashboard-container").style.display = "none";
           document.getElementById("lkh-weekly-container").style.display = "none";
+          document.getElementById("all-teachers-summary-container").style.display = "none";
           document.getElementById("guru-dashboard-container").style.display = "block";
           
           const welcomeH2 = document.getElementById('guru-welcome-message');
@@ -1510,6 +1531,69 @@
       }
       
       // ===================================================================
+      // LOGIKA UNTUK RINGKASAN SEMUA GURU (DARI AKUN GURU)
+      // ===================================================================
+      function showAllTeacherSummary() {
+        document.getElementById("guru-dashboard-container").style.display = "none";
+        document.getElementById("all-teachers-summary-container").style.display = "block";
+        document.getElementById("all-teachers-summary-title").innerText = `Ringkasan Kehadiran - ${selectedSchool}`;
+        loadAllTeacherSummaryData();
+      }
+
+      function loadAllTeacherSummaryData() {
+          const monthInput = document.getElementById('all-teachers-summary-month-input');
+          if (!monthInput.value) {
+            const now = new Date();
+            monthInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+          }
+          const [year, month] = monthInput.value.split('-').map(Number);
+          const container = document.getElementById('all-teachers-summary-table-container');
+          // --- PERUBAHAN DIMULAI ---
+          container.innerHTML = `
+            <div class="loader-container">
+              <div class="loader">
+                <div class="ball"></div>
+                <div class="ball"></div>
+                <div class="ball"></div>
+              </div>
+              <p>Memuat ringkasan, mohon tunggu...</p>
+            </div>`;
+          // --- PERUBAHAN SELESAI ---
+
+          google.script.run
+            .withSuccessHandler(summaries => {
+              renderAllTeacherSummaryTable(summaries);
+            })
+            .withFailureHandler(err => {
+              container.innerHTML = `<p style="color: var(--danger-color);">Gagal memuat: ${err.message}</p>`;
+            })
+            .getSchoolAttendanceSummary(currentUser.email, selectedSchool, year, month);
+      }
+      
+      function renderAllTeacherSummaryTable(summaries) {
+        const container = document.getElementById('all-teachers-summary-table-container');
+        let tableHTML = '<div class="table-scroll-wrapper"><table id="all-teachers-summary-table"><thead><tr><th>Nama Guru</th><th>Persentase</th><th>Hari Kerja</th><th>Hadir</th><th>Alpa</th><th>Alasan</th><th>Ceklok</th></tr></thead><tbody>';
+        if (summaries && summaries.length > 0) {
+          summaries.forEach(item => {
+            tableHTML += `
+              <tr>
+                <td>${item.name}</td>
+                <td>${item.summary.persentase}%</td>
+                <td>${item.summary.hariKerja}</td>
+                <td>${item.summary.kehadiran}</td>
+                <td>${item.summary.alpa}</td>
+                <td>${item.summary.alasan}</td>
+                <td>${item.summary.ceklok}</td>
+              </tr>
+            `;
+          });
+        } else {
+          tableHTML += '<tr><td colspan="7">Tidak ada data guru untuk ditampilkan.</td></tr>';
+        }
+        tableHTML += '</tbody></table></div>';
+        container.innerHTML = tableHTML;
+      }
+      // ===================================================================
       // LOGIKA UNTUK STAFF
       // ===================================================================
       function showStaffDashboard(userData) {
@@ -1523,6 +1607,8 @@
           document.getElementById("teacher-holiday-settings-container").style.display = "none";
           document.getElementById("emis-import-container").style.display = "none";
           document.getElementById("emis-export-container").style.display = "none";
+          document.getElementById("all-teachers-summary-container").style.display = "none";
+
 
           document.getElementById("staff-dashboard-container").style.display = "block";
           
@@ -1575,7 +1661,17 @@
           }
           const [year, month] = monthInput.value.split('-').map(Number);
           const container = document.getElementById('staff-summary-table-container');
-          container.innerHTML = '<p>Memuat ringkasan guru...</p>';
+          // --- PERUBAHAN DIMULAI ---
+          container.innerHTML = `
+            <div class="loader-container">
+              <div class="loader">
+                <div class="ball"></div>
+                <div class="ball"></div>
+                <div class="ball"></div>
+              </div>
+              <p>Memuat ringkasan, mohon tunggu...</p>
+            </div>`;
+          // --- PERUBAHAN SELESAI ---
 
           google.script.run
             .withSuccessHandler(summaries => {
@@ -1590,17 +1686,17 @@
 
       function renderStaffSummaryTable(summaries) {
         const container = document.getElementById('staff-summary-table-container');
-        let tableHTML = '<table id="staff-summary-table"><thead><tr><th>Nama Guru</th><th>Hari Kerja</th><th>Hadir</th><th>Alpa</th><th>Alasan</th><th>Persentase</th><th>Ceklok</th></tr></thead><tbody>';
+        let tableHTML = '<div class="table-scroll-wrapper"><table id="staff-summary-table"><thead><tr><th>Nama Guru</th><th>Persentase</th><th>Hari Kerja</th><th>Hadir</th><th>Alpa</th><th>Alasan</th><th>Ceklok</th></tr></thead><tbody>';
         if (summaries && summaries.length > 0) {
           summaries.forEach(item => {
             tableHTML += `
               <tr>
                 <td>${item.name}</td>
+                <td>${item.summary.persentase}%</td>
                 <td>${item.summary.hariKerja}</td>
                 <td>${item.summary.kehadiran}</td>
                 <td>${item.summary.alpa}</td>
                 <td>${item.summary.alasan}</td>
-                <td>${item.summary.persentase}%</td>
                 <td>${item.summary.ceklok}</td>
               </tr>
             `;
@@ -1608,7 +1704,7 @@
         } else {
           tableHTML += '<tr><td colspan="7">Tidak ada data guru untuk ditampilkan.</td></tr>';
         }
-        tableHTML += '</tbody></table>';
+        tableHTML += '</tbody></table></div>';
         container.innerHTML = tableHTML;
       }
       
