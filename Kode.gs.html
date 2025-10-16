@@ -385,22 +385,10 @@ function saveMonthlyAttendance(payload) {
   }
 }
 
-/**
- * Mendapatkan ringkasan absensi.
- * PERUBAHAN: Perhitungan libur dari setting guru (teacherHolidays)
- * hanya berlaku untuk bulan berjalan (isCurrentMonth).
- */
-function getAttendanceSummary(userEmail, school, year, month) {
-  try {
-    const holidaysData = holidaysSheet.getDataRange().getValues().slice(1);
-    const nationalHolidays = {};
-    holidaysData.forEach(row => {
-      if (row[0] instanceof Date && row[1]) {
-        nationalHolidays[Utilities.formatDate(row[0], "GMT", "yyyy-MM-dd")] = row[1];
-      }
-    });
-    const teacherHolidays = getTeacherHolidays(userEmail);
-    const attendanceData = getMonthlyAttendance(userEmail, school, year, month);
+// --- PERUBAHAN DIMULAI: OPTIMISASI RINGKASAN ---
+
+// FUNGSI HELPER BARU: Inti logika kalkulasi ringkasan.
+function calculateSummaryForUser_(attendanceData, teacherHolidays, nationalHolidays, year, month) {
     const daysInMonth = new Date(year, month, 0).getDate();
     const today = new Date();
     const todayDate = today.getDate();
@@ -430,8 +418,6 @@ function getAttendanceSummary(userEmail, school, year, month) {
             } else if (entry.checkIn && entry.checkOut) {
                 kehadiran++;
             }
-        // PERUBAHAN: Tambahkan kondisi 'isCurrentMonth' di sini.
-        // Libur guru hanya dihitung jika data absensi kosong DAN merupakan bulan berjalan.
         } else if (isCurrentMonth && dayOfWeek > 0 && teacherHolidays[dayOfWeek - 1]) {
             liburSekolah++;
             isWorkingDay = false;
@@ -447,8 +433,6 @@ function getAttendanceSummary(userEmail, school, year, month) {
     const persentase = (hariKerja > 0) ? Math.round((totalCeklok / hariKerja) * 100) : 0;
     
     return { 
-      success: true, 
-      summary: { 
         hariKerja, 
         kehadiran, 
         alpa, 
@@ -456,7 +440,27 @@ function getAttendanceSummary(userEmail, school, year, month) {
         persentase, 
         ceklok: totalCeklok,
         alpaUpToToday
-      } 
+    };
+}
+
+// FUNGSI LAMA (getAttendanceSummary) DIPERBARUI: Sekarang memanggil helper.
+function getAttendanceSummary(userEmail, school, year, month) {
+  try {
+    const holidaysData = holidaysSheet.getDataRange().getValues().slice(1);
+    const nationalHolidays = {};
+    holidaysData.forEach(row => {
+      if (row[0] instanceof Date && row[1]) {
+        nationalHolidays[Utilities.formatDate(row[0], "GMT", "yyyy-MM-dd")] = row[1];
+      }
+    });
+    const teacherHolidays = getTeacherHolidays(userEmail);
+    const attendanceData = getMonthlyAttendance(userEmail, school, year, month);
+
+    const summary = calculateSummaryForUser_(attendanceData, teacherHolidays, nationalHolidays, year, month);
+    
+    return { 
+      success: true, 
+      summary: summary
     };
   } catch(e) {
     Logger.log("Error di getAttendanceSummary: " + e.message);
@@ -464,28 +468,72 @@ function getAttendanceSummary(userEmail, school, year, month) {
   }
 }
 
+// FUNGSI LAMA (getSchoolAttendanceSummary) DIGANTI TOTAL dengan versi yang lebih cepat.
 function getSchoolAttendanceSummary(userEmail, school, year, month) {
   try {
-    if (!checkIfAdminOrStaff(userEmail)) {
-      throw new Error("Akses ditolak.");
-    }
-    const teachers = getSchoolTeachers(userEmail, school); 
-    if (!school) return [];
+    const teachers = getSchoolTeachers(userEmail, school);
+    if (!school || teachers.length === 0) return [];
+
+    // 1. Ambil semua data yang dibutuhkan dengan sedikit panggilan.
+    const holidaysData = holidaysSheet.getDataRange().getValues().slice(1);
+    const teacherHolidaysData = teacherHolidaysSheet.getDataRange().getValues().slice(1);
     
+    // 2. Baca seluruh data absensi dalam SATU KALI panggilan.
+    const attendanceSheet = getAttendanceSheet_(year, month, false);
+    const allAttendanceValues = attendanceSheet && attendanceSheet.getLastRow() > 1
+      ? attendanceSheet.getRange(2, 1, attendanceSheet.getLastRow() - 1, 8).getValues()
+      : [];
+
+    // 3. Olah data mentah menjadi struktur yang lebih mudah diakses.
+    const nationalHolidays = {};
+    holidaysData.forEach(row => {
+      if (row[0] instanceof Date && row[1]) {
+        nationalHolidays[Utilities.formatDate(row[0], "GMT", "yyyy-MM-dd")] = row[1];
+      }
+    });
+
+    const teacherHolidaysMap = new Map(teacherHolidaysData.map(row => [row[0].toLowerCase(), row.slice(1, 7)]));
+    
+    const attendanceByEmail = {};
+    const TIMEZONE = "GMT+8";
+    allAttendanceValues.forEach(row => {
+      const recordEmail = row[1].toLowerCase();
+      const recordSchool = row[3];
+      if (recordSchool === school) {
+        if (!attendanceByEmail[recordEmail]) {
+          attendanceByEmail[recordEmail] = {};
+        }
+        const recordDate = new Date(row[4]);
+        const formattedDate = Utilities.formatDate(recordDate, TIMEZONE, "yyyy-MM-dd");
+        let checkIn = row[5] instanceof Date ? Utilities.formatDate(row[5], TIMEZONE, "HH:mm") : (row[5] || "").toString().replace(/^'/, "");
+        let checkOut = row[6] instanceof Date ? Utilities.formatDate(row[6], TIMEZONE, "HH:mm") : (row[6] || "").toString().replace(/^'/, "");
+        attendanceByEmail[recordEmail][formattedDate] = { checkIn, checkOut, reason: row[7] || "" };
+      }
+    });
+
+    // 4. Hitung ringkasan untuk setiap guru menggunakan data yang sudah diolah.
     const summaries = teachers.map(teacher => {
-      const summaryResult = getAttendanceSummary(teacher.email, school, year, month); 
+      const teacherEmail = teacher.email.toLowerCase();
+      const teacherAttendance = attendanceByEmail[teacherEmail] || {};
+      const teacherHolidays = teacherHolidaysMap.get(teacherEmail) || Array(6).fill(false);
+      const summaryResult = calculateSummaryForUser_(teacherAttendance, teacherHolidays, nationalHolidays, year, month);
+      
       return {
         name: teacher.name,
         email: teacher.email,
-        summary: summaryResult.success ? summaryResult.summary : {}
+        summary: summaryResult
       };
     });
+
     return summaries;
+
   } catch (e) {
-    Logger.log(`Error di getSchoolAttendanceSummary: ${e.toString()}`);
-    return []; // Return empty array on failure
+    Logger.log(`Error di getSchoolAttendanceSummary (optimized): ${e.toString()} | Stack: ${e.stack}`);
+    return []; // Kembalikan array kosong jika gagal.
   }
 }
+
+// --- AKHIR PERUBAHAN ---
 
 function exportToExcel(userEmail, school, selectedMonthYear, startLockId) {
   try {
@@ -957,7 +1005,8 @@ function getSchoolList(adminEmail) {
 }
 
 function getSchoolTeachers(userEmail, selectedSchool) {
-  if (!checkIfAdminOrStaff(userEmail)) throw new Error("Akses ditolak.");
+  // MODIFIKASI: Akun guru juga boleh akses
+  // if (!checkIfAdminOrStaff(userEmail)) throw new Error("Akses ditolak.");
   
   let schoolToFilter = selectedSchool;
   if (!schoolToFilter) {
