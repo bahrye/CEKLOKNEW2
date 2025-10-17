@@ -152,6 +152,10 @@
           <div id="all-teachers-summary-table-container">
             <p>Memuat ringkasan guru...</p>
           </div>
+          
+          <div id="summary-legend" style="margin-top: 20px; text-align: left; font-size: 14px;">
+            </div>
+
         </div>
       </div>
 
@@ -1572,11 +1576,22 @@
       
       function renderAllTeacherSummaryTable(summaries) {
         const container = document.getElementById('all-teachers-summary-table-container');
+        const legendContainer = document.getElementById('summary-legend');
+
         let tableHTML = '<div class="table-scroll-wrapper"><table id="all-teachers-summary-table"><thead><tr><th>Nama Guru</th><th>Persentase</th><th>Hari Kerja</th><th>Hadir</th><th>Alpa</th><th>Alasan</th><th>Ceklok</th></tr></thead><tbody>';
+        
         if (summaries && summaries.length > 0) {
           summaries.forEach(item => {
+            // --- AWAL PERUBAHAN ---
+            let rowClass = '';
+            if (item.summary.persentase === 100) {
+              rowClass = 'summary-row-complete';
+            } else {
+              rowClass = 'summary-row-incomplete';
+            }
+            
             tableHTML += `
-              <tr>
+              <tr class="${rowClass}">
                 <td>${item.name}</td>
                 <td>${item.summary.persentase}%</td>
                 <td>${item.summary.hariKerja}</td>
@@ -1586,13 +1601,31 @@
                 <td>${item.summary.ceklok}</td>
               </tr>
             `;
+            // --- AKHIR PERUBAHAN ---
           });
+          
+          // --- AWAL PERUBAHAN UNTUK LEGENDA ---
+          legendContainer.innerHTML = `
+            <div class="legend-item">
+              <div class="legend-color-box green"></div>
+              <span>Lengkap (100%)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color-box red"></div>
+              <span>Belum Lengkap</span>
+            </div>
+          `;
+          // --- AKHIR PERUBAHAN UNTUK LEGENDA ---
+
         } else {
           tableHTML += '<tr><td colspan="7">Tidak ada data guru untuk ditampilkan.</td></tr>';
+          legendContainer.innerHTML = ''; // Kosongkan legenda jika tidak ada data
         }
+        
         tableHTML += '</tbody></table></div>';
         container.innerHTML = tableHTML;
       }
+
       // ===================================================================
       // LOGIKA UNTUK STAFF
       // ===================================================================
