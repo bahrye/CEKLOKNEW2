@@ -584,6 +584,57 @@
     text-align: left;
     font-weight: 500;
   }
+  
+  /* --- AWAL PERUBAHAN --- */
+  /* Style untuk pewarnaan baris tabel ringkasan guru */
+  .summary-row-incomplete {
+    background-color: #FEF2F2 !important;
+    color: #991B1B;
+    font-weight: 500;
+  }
+  .summary-row-incomplete:hover {
+    background-color: #FEE2E2 !important;
+  }
+  .summary-row-complete {
+    background-color: #F0FDF4 !important;
+    color: #15803D;
+  }
+  .summary-row-complete:hover {
+    background-color: #DCFCE7 !important;
+  }
+
+  /* Style untuk legenda */
+  #summary-legend {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 15px;
+    background-color: #F9FAFB;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin-top: 20px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+  }
+  .legend-color-box {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+  }
+  .legend-color-box.red {
+    background-color: #FEF2F2;
+    border: 1px solid #F87171;
+  }
+  .legend-color-box.green {
+    background-color: #F0FDF4;
+    border: 1px solid #4ADE80;
+  }
+  /* --- AKHIR PERUBAHAN --- */
 
   /* --- Style untuk Modal Pindah Sekolah --- */
   #school-switcher-link {
@@ -681,7 +732,7 @@
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
   }
 
-/* --- Style untuk LKH Mingguan Form --- */
+  /* --- Style untuk LKH Mingguan Form --- */
   #lkh-weekly-container .card {
     max-width: 90%;
     width: 850px;
@@ -800,7 +851,7 @@
     }
   }
 
-.loader-container p {
+  .loader-container p {
     margin-top: 15px;
     font-size: 14px;
     color: var(--text-secondary-color);
