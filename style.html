@@ -585,7 +585,6 @@
     font-weight: 500;
   }
   
-  /* --- AWAL PERUBAHAN --- */
   /* Style untuk pewarnaan baris tabel ringkasan guru */
   .summary-row-incomplete {
     background-color: #FEF2F2 !important;
@@ -634,7 +633,6 @@
     background-color: #F0FDF4;
     border: 1px solid #4ADE80;
   }
-  /* --- AKHIR PERUBAHAN --- */
 
   /* --- Style untuk Modal Pindah Sekolah --- */
   #school-switcher-link {
@@ -790,6 +788,30 @@
       padding: 12px 8px; /* Sesuaikan padding agar tidak terlalu sempit */
       white-space: nowrap; /* Mencegah teks header membungkus ke bawah */
     }
+
+    /* Membuat tabel akun admin dapat digulir secara horizontal */
+    #user-table-container {
+        overflow-x: auto;
+    }
+
+    /* --- AWAL PERUBAHAN (Hari Libur Nasional Mobile) --- */
+    /* Mengizinkan item di dalam baris untuk turun ke bawah jika tidak cukup ruang */
+    #holidays-container .holiday-input-row > div {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    /* Membuat input mengambil sebagian besar lebar, menyisakan ruang untuk tombol */
+    #holidays-container .holiday-input-row input {
+       flex-grow: 1;
+       flex-basis: 200px; /* Memberi basis sebelum membesar, agar bisa wrap */
+    }
+
+    /* Tombol hapus tidak akan membesar */
+    #holidays-container .holiday-input-row .clear-btn {
+       flex-grow: 0;
+    }
+    /* --- AKHIR PERUBAHAN (Hari Libur Nasional Mobile) --- */
   }
 
   /* --- Efek Api untuk Alpa --- */
