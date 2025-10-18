@@ -908,4 +908,31 @@
     color: var(--text-secondary-color);
     font-weight: 500;
   }
+
+  /* === TAMBAHAN UNTUK IKON MATA PASSWORD === */
+  .password-wrapper {
+    position: relative;
+  }
+
+  /* Target input password berdasarkan ID-nya di dalam wrapper.
+    Ini akan berfungsi baik saat type="password" maupun type="text".
+  */
+  .password-wrapper input#password {
+    padding-right: 45px; /* Beri ruang untuk ikon di sebelah kanan */
+  }
+
+  .password-wrapper i {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--text-secondary-color); /* Warna ikon abu-abu */
+    transition: color 0.3s;
+  }
+
+  .password-wrapper i:hover {
+    color: var(--primary-color); /* Warna ikon saat di-hover */
+  }
+  /* === AKHIR TAMBAHAN === */
 </style>
