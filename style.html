@@ -1,6 +1,16 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
+  /* --- TAMBAHAN PENTING UNTUK RESPONSIVE --- */
+  html {
+    box-sizing: border-box;
+    overflow-x: hidden; /* Mencegah scroll horizontal global */
+  }
+  *, *:before, *:after {
+    box-sizing: inherit; /* Membuat padding dan border tidak menambah lebar elemen */
+  }
+  /* --- AKHIR TAMBAHAN --- */
+
   /* --- Variabel Warna --- */
   :root {
     --primary-color: #3B82F6;
@@ -26,12 +36,16 @@
     margin: 0;
     padding-top: 2rem;
     color: var(--text-primary-color);
+    
+    /* TAMBAHAN: Memastikan body tidak lebih lebar dari layar */
+    width: 100%;
   }
 
   .container {
     width: 100%;
     max-width: 650px; /* Lebarkan container untuk tabel staff */
     padding: 20px;
+    /* box-sizing: border-box; sudah di-handle oleh * selector di atas */
   }
 
   .card {
@@ -74,7 +88,7 @@
     padding: 14px 15px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    box-sizing: border-box;
+    box-sizing: border-box; /* Sudah ada, bagus! */
     font-family: 'Poppins', sans-serif;
     font-size: 14px;
     transition: border-color 0.3s, box-shadow 0.3s;
@@ -670,9 +684,11 @@
   }
   
   /* --- Style untuk LKH Form --- */
+  /* PERUBAHAN: Menghapus max-width: 90% dan width: 850px */
   #lkh-container .card {
-    max-width: 90%; /* Perlebar card LKH */
-    width: 850px;
+    width: 100%;
+    max-width: 850px; /* Batas lebar maksimum di layar besar */
+    margin: 0 auto; /* Pusatkan card */
   }
   
   #lkh-table-container {
@@ -687,22 +703,23 @@
       table-layout: fixed; /* Paksa lebar kolom agar konsisten */
   }
 
+  /* --- AWAL PERUBAHAN: Penyesuaian Lebar Kolom LKH --- */
   /* Atur lebar kolom secara spesifik */
   #lkh-table-container th:nth-child(1),
-  #lkh-table-container td:nth-child(1) { width: 20%; } /* Kolom Tanggal */
+  #lkh-table-container td:nth-child(1) { width: 30%; } /* Kolom Tanggal (DIPERBESAR) */
   
   #lkh-table-container th:nth-child(2),
-  #lkh-table-container td:nth-child(2) { width: 32.5%; } /* Kolom Uraian */
+  #lkh-table-container td:nth-child(2) { width: 32.5%; } /* Kolom Uraian (DIKECLKAN) */
   
   #lkh-table-container th:nth-child(3),
-  #lkh-table-container td:nth-child(3) { width: 32.5%; } /* Kolom Hasil */
+  #lkh-table-container td:nth-child(3) { width: 32.5%; } /* Kolom Hasil (DIKECLKAN) */
 
   #lkh-table-container th:nth-child(4),
-  #lkh-table-container td:nth-child(4) { width: 18%; } /* Kolom Vol */
+  #lkh-table-container td:nth-child(4) { width: 20%; } /* Kolom Vol (DIKECLKAN) */
 
   #lkh-table-container th:nth-child(5),
-  #lkh-table-container td:nth-child(5) { width: 10%; text-align: center; } /* Kolom Aksi */
-
+  #lkh-table-container td:nth-child(5) { width: 10%; text-align: center; } /* Kolom Aksi (DIKECLKAN) */
+  /* --- AKHIR PERUBAHAN --- */
 
   #lkh-table-container textarea,
   #lkh-table-container input[type="text"] {
@@ -731,9 +748,11 @@
   }
 
   /* --- Style untuk LKH Mingguan Form --- */
+  /* PERUBAHAN: Menghapus max-width: 90% dan width: 850px */
   #lkh-weekly-container .card {
-    max-width: 90%;
-    width: 850px;
+    width: 100%;
+    max-width: 850px; /* Batas lebar maksimum di layar besar */
+    margin: 0 auto; /* Pusatkan card */
   }
   
   #lkh-weekly-table-container {
@@ -768,7 +787,7 @@
 
   /* Lebar Kolom LKH Mingguan */
   #lkh-weekly-table-container th:nth-child(1),
-  #lkh-weekly-table-container td:nth-child(1) { width: 6%; } /* Kolom Hari */
+  #lkh-weekly-table-container td:nth-child(1) { width: 10%; } /* Kolom Hari */
   
   #lkh-weekly-table-container th:nth-child(2),
   #lkh-weekly-table-container td:nth-child(2) { width: 32.5%; } /* Kolom Uraian */
@@ -777,7 +796,7 @@
   #lkh-weekly-table-container td:nth-child(3) { width: 32.5%; } /* Kolom Hasil */
 
   #lkh-weekly-table-container th:nth-child(4),
-  #lkh-weekly-table-container td:nth-child(4) { width: 18%; } /* Kolom Vol */
+  #lkh-weekly-table-container td:nth-child(4) { width: 20%; } /* Kolom Vol */
 
   #lkh-weekly-table-container th:nth-child(5),
   #lkh-weekly-table-container td:nth-child(5) { width: 10%; text-align: center; } /* Kolom Aksi */
@@ -812,6 +831,16 @@
        flex-grow: 0;
     }
     /* --- AKHIR PERUBAHAN (Hari Libur Nasional Mobile) --- */
+    
+    /* PERUBAHAN: Mengurangi padding card di layar kecil */
+    .card {
+        padding: 20px 15px;
+    }
+    
+    .back-button {
+        top: 10px;
+        left: 10px;
+    }
   }
 
   /* --- Efek Api untuk Alpa --- */
