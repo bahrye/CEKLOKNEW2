@@ -17,9 +17,13 @@
                 <label for="email">Email</label>
                 <input type="email" id="email" placeholder="Masukkan email Anda" autocomplete="username">
               </div>
+              
               <div class="input-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" placeholder="Masukkan password" autocomplete="current-password">
+                <div class="password-wrapper">
+                  <input type="password" id="password" placeholder="Masukkan password" autocomplete="current-password">
+                  <i class="fa-solid fa-eye" id="togglePassword"></i>
+                </div>
               </div>
               <button type="submit" id="login-button"><i class="fa-solid fa-right-to-bracket"></i> <span>Login</span></button>
               <p id="login-message" class="message"></p>
@@ -706,7 +710,7 @@
         }
 
         const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
+        const passwordInput = document.getElementById('password'); // Variabel sudah ada
         const loginOnEnter = (event) => {
           if (event.key === 'Enter') {
             event.preventDefault();
@@ -715,6 +719,23 @@
         };
         emailInput.addEventListener('keyup', loginOnEnter);
         passwordInput.addEventListener('keyup', loginOnEnter);
+        
+        // ==== PERUBAHAN DIMULAI DI SINI (JavaScript untuk ikon mata) ====
+        const toggleIcon = document.getElementById('togglePassword');
+        
+        // Cek jika passwordInput (dari atas) dan toggleIcon ada
+        if (passwordInput && toggleIcon) {
+          toggleIcon.addEventListener('click', function () {
+            // Cek tipe input saat ini
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            // Ganti ikon
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+          });
+        }
+        // ==== PERUBAHAN SELESAI ====
       });
       
       function handleLogin() {
@@ -825,15 +846,44 @@
                   <label for="email">Email</label>
                   <input type="email" id="email" placeholder="Masukkan email Anda" autocomplete="username">
                 </div>
+                
                 <div class="input-group">
                   <label for="password">Password</label>
-                  <input type="password" id="password" placeholder="Masukkan password" autocomplete="current-password">
+                  <div class="password-wrapper">
+                    <input type="password" id="password" placeholder="Masukkan password" autocomplete="current-password">
+                    <i class="fa-solid fa-eye" id="togglePassword"></i>
+                  </div>
                 </div>
                 <button type="submit" id="login-button"><i class="fa-solid fa-right-to-bracket"></i> <span>Login</span></button>
                 <p id="login-message" class="message"></p>
               </div>
            </form>
         `;
+
+        // ==== TAMBAHAN KODE SAAT LOGOUT ====
+        // Kita harus mendaftarkan ulang event listener untuk form login yang baru dibuat
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const toggleIcon = document.getElementById('togglePassword');
+        
+        const loginOnEnter = (event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            handleLogin();
+          }
+        };
+        emailInput.addEventListener('keyup', loginOnEnter);
+        passwordInput.addEventListener('keyup', loginOnEnter);
+        
+        if (passwordInput && toggleIcon) {
+          toggleIcon.addEventListener('click', function () {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+          });
+        }
+        // ==== AKHIR TAMBAHAN ====
 
         loginContainer.style.display = "block";
         document.getElementById("school-selection-container").style.display = "none";
