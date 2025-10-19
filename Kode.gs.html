@@ -1,4 +1,8 @@
 const SPREADSHEET_ID = "1EIQY1DeGcwhEaYojbGMah-S5HbtsrON5YRy37bl_vLg"; 
+// --- AWAL PERUBAHAN: Tambahkan URL Deployment Anda ---
+// GANTI "YOUR_DEPLOYMENT_ID" DENGAN KODE ID WEB APP ANDA
+const DEPLOYMENT_URL = "https://s.id/ceklok1"; 
+// --- AKHIR PERUBAHAN ---
 
 const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 const usersSheet = ss.getSheetByName("Users");
@@ -377,6 +381,66 @@ function saveMonthlyAttendance(payload) {
     if (rowsToDelete.length > 0) {
       rowsToDelete.sort((a, b) => b - a).forEach(rowIndex => sheet.deleteRow(rowIndex));
     }
+
+    // --- AWAL PERUBAHAN: Logika Notifikasi Penyelesaian 100% ---
+    try {
+      // 1. Dapatkan data yang diperlukan untuk kalkulasi ringkasan
+      const holidaysData = holidaysSheet.getDataRange().getValues().slice(1);
+      const nationalHolidays = {};
+      holidaysData.forEach(row => {
+        if (row[0] instanceof Date && row[1]) {
+          nationalHolidays[Utilities.formatDate(row[0], "GMT", "yyyy-MM-dd")] = row[1];
+        }
+      });
+      const teacherHolidays = getTeacherHolidays(email);
+      // 2. Ambil data absensi yang BARU SAJA DISIMPAN
+      const freshAttendanceData = getMonthlyAttendance(email, school, year, month);
+
+      // 3. Hitung ringkasan
+      const summary = calculateSummaryForUser_(freshAttendanceData, teacherHolidays, nationalHolidays, year, month);
+      
+      // 4. Buat kunci unik untuk properti
+      const monthStr = `${year}-${String(month).padStart(2, '0')}`;
+      const notificationKey = `completion_notif_${email}_${school}_${monthStr}`;
+      const userProperties = PropertiesService.getUserProperties(); // Menggunakan UserProperties agar spesifik per user
+      const notificationSent = userProperties.getProperty(notificationKey);
+      const monthName = new Date(year, month - 1, 1).toLocaleString('id-ID', { month: 'long', year: 'numeric', timeZone: 'GMT' });
+
+      if (summary.persentase === 100) {
+        // 5. Jika 100% dan notifikasi BELUM terkirim
+        if (notificationSent !== 'sent') {
+          const subject = `Ceklok Selesai: Kehadiran ${school} Anda 100%`;
+          const body = `
+            <p>Halo ${name},</p>
+            <p>Luar biasa! Pengisian ceklok kehadiran Anda untuk <strong>${school}</strong> bulan <strong>${monthName}</strong> telah lengkap (100%).</p>
+            <p>Berikut adalah ringkasan Anda:</p>
+            <ul>
+              <li>Hari Kerja: ${summary.hariKerja}</li>
+              <li>Kehadiran: ${summary.kehadiran}</li>
+              <li>Alpa: ${summary.alpa}</li>
+              <li>Alasan (Libur Sekolah/Lainnya): ${summary.alasan}</li>
+              <li>Total Ceklok: ${summary.ceklok}</li>
+              <li><strong>Persentase: ${summary.persentase}%</strong></li>
+            </ul>
+            <p>Terima kasih atas kedisiplinan Anda.</p>
+            <br>
+            <p><em>(Ini adalah notifikasi otomatis. Anda hanya akan menerima email ini satu kali per bulan saat data Anda mencapai 100%.)</em></p>
+          `;
+          MailApp.sendEmail({ to: email, subject: subject, htmlBody: body, name: "Sistem Ceklok Otomatis" });
+          // 6. Tandai bahwa notifikasi telah dikirim
+          userProperties.setProperty(notificationKey, 'sent');
+        }
+      } else {
+        // 7. Jika KURANG dari 100%, hapus tanda (untuk kasus edit/hapus data)
+        if (notificationSent === 'sent') {
+          userProperties.deleteProperty(notificationKey);
+        }
+      }
+    } catch (e) {
+        Logger.log(`Gagal mengirim notifikasi penyelesaian 100% untuk ${email} di ${school}: ${e.message}`);
+        // Jangan hentikan proses save, cukup log errornya.
+    }
+    // --- AKHIR PERUBAHAN ---
 
     return { status: "success", message: "Absensi bulan ini berhasil diperbarui!" };
   } catch (e) {
@@ -1079,18 +1143,24 @@ function saveTeacherHolidays(email, settings) {
   }
 }
 
+// --- AWAL PERUBAHAN BESAR: Logika Notifikasi Email ---
 function sendIncompleteAttendanceReminders() {
   const today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth() + 1;
   const lastDayOfMonth = new Date(year, month, 0).getDate();
-  const remainingDays = lastDayOfMonth - today.getDate();
+  const remainingDays = lastDayOfMonth - today.getDate(); // H-0 adalah hari terakhir
 
-  const reminderDays = [5, 3, 2, 1];
+  // PERUBAHAN 1: Update hari pengingat (H-7, H-5 s/d H-0)
+  const reminderDays = [7, 5, 4, 3, 2, 1, 0]; 
   if (!reminderDays.includes(remainingDays)) return;
+
+  // Cek apakah notifikasi 100% sudah pernah terkirim (agar tidak kirim pengingat jika sudah 100%)
+  const userProperties = PropertiesService.getUserProperties();
 
   const allUsers = usersSheet.getDataRange().getValues().slice(1);
   const teachers = allUsers.filter(user => user[4] === 'guru');
+  const monthName = new Date(year, month - 1, 1).toLocaleString('id-ID', { month: 'long', year: 'numeric', timeZone: 'GMT' });
 
   teachers.forEach(teacher => {
     const teacherEmail = teacher[0];
@@ -1098,11 +1168,54 @@ function sendIncompleteAttendanceReminders() {
     const teacherSchools = (teacher[3] || "").split(',').map(s => s.trim()).filter(Boolean);
 
     teacherSchools.forEach(school => {
+      // PERUBAHAN 2: Cek properti notifikasi 100%
+      const monthStr = `${year}-${String(month).padStart(2, '0')}`;
+      const notificationKey = `completion_notif_${teacherEmail}_${school}_${monthStr}`;
+      const completionNotificationSent = userProperties.getProperty(notificationKey);
+
+      // Jika notifikasi 100% sudah terkirim, lewati (berarti data mereka sudah lengkap)
+      if (completionNotificationSent === 'sent') {
+        return; 
+      }
+
       const summaryResult = getAttendanceSummary(teacherEmail, school, year, month);
+      
+      // Jika persentase kurang dari 100% (dan notifikasi 100% belum terkirim)
       if (summaryResult.success && summaryResult.summary.persentase < 100) {
-        const subject = `Peringatan: Pengisian Ceklok di ${school} Belum Lengkap`;
         const summary = summaryResult.summary;
-        const body = `<p>Halo ${teacherName},</p><p>Sistem kami mendeteksi bahwa pengisian ceklok kehadiran Anda untuk <strong>${school}</strong> bulan ini belum mencapai 100%.</p><p>Mohon segera melengkapi data Anda. Ringkasan saat ini: ${summary.persentase}% lengkap.</p>`;
+        
+        // PERUBAHAN 3: Update Subjek dan Isi Email
+        let sisaWaktu;
+        if (remainingDays === 0) {
+            sisaWaktu = "<strong>HARI INI ADALAH HARI TERAKHIR!</strong>";
+        } else if (remainingDays === 1) {
+            sisaWaktu = `Sisa waktu 1 hari.`;
+        } else {
+            sisaWaktu = `Sisa waktu ${remainingDays} hari.`;
+        }
+
+        const subject = `Peringatan: Ceklok ${school} Belum Lengkap (${sisaWaktu})`;
+        const body = `
+          <p>Halo ${teacherName},</p>
+          <p>Sistem kami mendeteksi bahwa pengisian ceklok kehadiran Anda untuk <strong>${school}</strong> bulan <strong>${monthName}</strong> belum mencapai 100%.</p>
+          <p>${sisaWaktu} Mohon segera melengkapi data Anda.</p>
+          <br>
+          <p><strong>Ringkasan Anda Saat Ini:</strong></p>
+          <ul>
+            <li>Hari Kerja: ${summary.hariKerja}</li>
+            <li>Kehadiran: ${summary.kehadiran}</li>
+            <li>Alpa: ${summary.alpa}</li>
+            <li>Alasan (Libur Sekolah/Lainnya): ${summary.alasan}</li>
+            <li>Total Ceklok: ${summary.ceklok}</li>
+            <li><strong>Persentase: ${summary.persentase}%</strong></li>
+          </ul>
+          <br>
+          <a href="${DEPLOYMENT_URL}" style="background-color: #3B82F6; color: white; padding: 12px 20px; text-decoration: none; border-radius: 8px; font-weight: 600; font-family: 'Poppins', sans-serif; display: inline-block;">
+            Buka Aplikasi Ceklok
+          </a>
+          <br>
+          <p style="font-size: 12px; color: #6B7280;">Jika tombol tidak berfungsi, silakan salin link ini ke browser Anda: ${DEPLOYMENT_URL}</p>
+        `;
         
         try {
           MailApp.sendEmail({ to: teacherEmail, subject: subject, htmlBody: body, name: "Sistem Ceklok Otomatis" });
@@ -1113,6 +1226,8 @@ function sendIncompleteAttendanceReminders() {
     });
   });
 }
+// --- AKHIR PERUBAHAN BESAR ---
+
 
 function setupDailyTrigger() {
   const triggers = ScriptApp.getProjectTriggers();
@@ -1124,7 +1239,7 @@ function setupDailyTrigger() {
   ScriptApp.newTrigger('sendIncompleteAttendanceReminders')
     .timeBased()
     .everyDays(1)
-    .atHour(8)
+    .atHour(8) // Trigger berjalan setiap hari jam 8 pagi
     .create();
   Logger.log('Trigger harian untuk pengingat email berhasil dibuat.');
 }
