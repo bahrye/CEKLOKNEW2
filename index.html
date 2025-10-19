@@ -399,23 +399,39 @@
       let latestRequestToken = 0;
       const SPREADSHEET_ID = "1EIQY1DeGcwhEaYojbGMah-S5HbtsrON5YRy37bl_vLg";
 
+      // --- FUNGSI displayMessage SEKARANG DIPERBARUI ---
       function displayMessage(elementId, text, options = {}) {
         const { isSuccess = false, isProcessing = false } = options;
         const msgElem = document.getElementById(elementId);
         if (msgElem) {
-          msgElem.innerText = text;
-          if (isSuccess) {
-            msgElem.style.color = 'var(--success-color)';
-          } else if (isProcessing) {
-            msgElem.style.color = 'var(--text-secondary-color)';
-          } else { // isError
-            msgElem.style.color = 'var(--danger-color)';
-          }
           
+          // --- PERUBAHAN DIMULAI DI SINI ---
+          if (isProcessing) {
+            // Tampilkan loader dan teks
+            msgElem.innerHTML = `
+              <div class="message-with-loader">
+                <div class="message-loader"></div>
+                <span>${text}</span>
+              </div>
+            `;
+            msgElem.style.color = 'var(--text-secondary-color)';
+          } else {
+            // Tampilkan teks biasa (untuk sukses atau error)
+            msgElem.innerHTML = `<span>${text}</span>`; // Bungkus dengan span
+            
+            if (isSuccess) {
+              msgElem.style.color = 'var(--success-color)';
+            } else { // isError
+              msgElem.style.color = 'var(--danger-color)';
+            }
+          }
+          // --- PERUBAHAN SELESAI ---
+
           if (!isProcessing) {
             setTimeout(() => {
-              if (msgElem.innerText === text) { 
-                msgElem.innerText = '';
+              // Cek menggunakan textContent yang akan mengambil teks di dalam span
+              if (msgElem.textContent === text) { 
+                msgElem.innerHTML = ''; // Hapus loader/pesan
               }
             }, 10000);
           }
@@ -492,6 +508,9 @@
             const el = document.getElementById(id);
             if(el) el.innerText = "Memuat...";
           });
+          
+          // Menampilkan pesan loading
+          displayMessage('sptjm-download-message', 'Memuat data pratinjau...', { isProcessing: true });
 
           google.script.run
               .withSuccessHandler(data => {
@@ -518,6 +537,8 @@
                   
                   // 2. Aktifkan tombol setelah semua data berhasil dimuat
                   downloadButton.disabled = false;
+                  // Hapus pesan loading
+                  displayMessage('sptjm-download-message', '');
               })
               .withFailureHandler(err => {
                   displayMessage('sptjm-download-message', `Error: ${err.message}`);
@@ -579,7 +600,13 @@
       function generateLkhWeeklyForm() {
           const container = document.getElementById('lkh-weekly-table-container');
           const saveButton = document.getElementById('save-lkh-weekly-button');
-          container.innerHTML = '<p>Memuat formulir LKH mingguan...</p>';
+          container.innerHTML = `
+            <div class="loader-container">
+              <div class="loader">
+                <div class="ball"></div><div class="ball"></div><div class="ball"></div>
+              </div>
+              <p>Memuat formulir LKH mingguan...</p>
+            </div>`;
           saveButton.disabled = true;
 
           google.script.run
@@ -748,6 +775,9 @@
         }
         button.disabled = true;
         button.querySelector('span').textContent = "Mencoba Login...";
+        // Menampilkan loading saat login
+        displayMessage('login-message', 'Mencoba login...', { isProcessing: true });
+        
         google.script.run
           .withSuccessHandler(response => {
             button.disabled = false;
@@ -759,6 +789,7 @@
               // --- PERUBAHAN SELESAI ---
               
               currentUser = response.user;
+              displayMessage('login-message', ''); // Hapus pesan loading
               
               if (currentUser.role === 'admin') {
                 showAdminDashboard(currentUser);
@@ -947,6 +978,9 @@
             lkhButton.style.display = 'none';
           }
 
+          // Tampilkan loading untuk pengumuman
+          renderAnnouncements("Memuat pengumuman...", true);
+
           google.script.run.withSuccessHandler(response => {
               renderAnnouncements(response.announcements);
               appSettings = response;
@@ -1036,9 +1070,16 @@
         document.getElementById('emis-export-title').innerText = `Eksport Data Kehadiran - ${selectedSchool}`;
       }
       
-      function renderAnnouncements(text) {
+      // Modifikasi renderAnnouncements untuk menangani isProcessing
+      function renderAnnouncements(text, isProcessing = false) {
         const p = document.getElementById('announcement-text');
-        p.innerText = (text && text.trim() !== "") ? text : "Tidak ada pengumuman saat ini.";
+        const defaultText = "Tidak ada pengumuman saat ini.";
+        
+        if (isProcessing) {
+            p.innerHTML = `<div class="message-with-loader" style="justify-content: left;"><div class="message-loader"></div><span>${text}</span></div>`;
+        } else {
+            p.innerText = (text && text.trim() !== "") ? text : defaultText;
+        }
       }
       
       function changeMonth(direction) {
@@ -1057,7 +1098,14 @@
           const currentToken = latestRequestToken;
 
           document.getElementById('month-display').innerText = date.toLocaleString('id-ID', { month: 'long', year: 'numeric' });
-          document.getElementById('attendance-table-container').innerHTML = '<div>Memuat data...</div>';
+          // Tampilkan loading
+          document.getElementById('attendance-table-container').innerHTML = `
+            <div class="loader-container">
+              <div class="loader">
+                <div class="ball"></div><div class="ball"></div><div class="ball"></div>
+              </div>
+              <p>Memuat data absensi...</p>
+            </div>`;
           saveButton.disabled = true;
 
           google.script.run
@@ -1346,7 +1394,8 @@
           const [targetYear, targetMonth] = summaryMonthInput.value.split('-').map(Number);
 
           const summaryValues = document.querySelectorAll('.summary-value');
-          summaryValues.forEach(el => el.innerText = '...');
+          // Tampilkan loading di ringkasan
+          summaryValues.forEach(el => el.innerHTML = '...');
 
           google.script.run
               .withSuccessHandler(response => {
@@ -1444,6 +1493,8 @@
         const button = document.getElementById('save-teacher-holidays-button');
         button.disabled = true;
         button.querySelector('span').textContent = 'Memuat...';
+        displayMessage('teacher-holidays-message', 'Memuat pengaturan...', { isProcessing: true });
+        
         google.script.run
             .withSuccessHandler(settings => {
                 if (settings && settings.length === 6) {
@@ -1454,6 +1505,7 @@
                 }
                 button.disabled = false;
                 button.querySelector('span').textContent = 'Simpan Pengaturan';
+                displayMessage('teacher-holidays-message', ''); // Hapus pesan loading
             })
             .withFailureHandler(err => {
                 displayMessage('teacher-holidays-message', 'Gagal memuat pengaturan: ' + err.message);
@@ -1471,6 +1523,8 @@
           }
           button.disabled = true;
           button.querySelector('span').textContent = 'Menyimpan...';
+          displayMessage('teacher-holidays-message', 'Menyimpan...', { isProcessing: true });
+          
           google.script.run
               .withSuccessHandler(response => {
                   displayMessage('teacher-holidays-message', response.message, { isSuccess: true });
@@ -1710,6 +1764,10 @@
           loadSchoolTeachers();
           loadStaffSummary();
 
+          // Tampilkan loading untuk pengumuman staff
+          const p = document.getElementById('staff-announcement-text');
+          p.innerHTML = `<div class="message-with-loader" style="justify-content: left;"><div class="message-loader"></div><span>Memuat pengumuman...</span></div>`;
+
           google.script.run.withSuccessHandler(response => {
             const p = document.getElementById('staff-announcement-text');
             p.innerText = (response.announcements && response.announcements.trim() !== "") ? response.announcements : "Tidak ada pengumuman saat ini.";
@@ -1717,11 +1775,14 @@
       }
 
       function loadSchoolTeachers() {
+        const selectCeklok = document.getElementById('staff-teacher-select-ceklok');
+        const selectEmis = document.getElementById('staff-teacher-select-emis');
+        selectCeklok.innerHTML = '<option value="">-- Memuat Guru --</option>';
+        selectEmis.innerHTML = '<option value="">-- Memuat Guru --</option>';
+
         google.script.run
           .withSuccessHandler(teachers => {
             schoolTeachers = teachers;
-            const selectCeklok = document.getElementById('staff-teacher-select-ceklok');
-            const selectEmis = document.getElementById('staff-teacher-select-emis');
             selectCeklok.innerHTML = '<option value="">-- Pilih Guru --</option>';
             selectEmis.innerHTML = '<option value="">-- Pilih Guru --</option>';
             teachers.forEach(teacher => {
@@ -1896,7 +1957,11 @@
       }
       
       function loadUsers() {
-        document.getElementById('user-table-container').innerHTML = '<div>Memuat...</div>';
+        document.getElementById('user-table-container').innerHTML = `
+            <div class="loader-container">
+              <div class="loader"><div class="ball"></div><div class="ball"></div><div class="ball"></div></div>
+              <p>Memuat daftar akun...</p>
+            </div>`;
         google.script.run.withSuccessHandler(renderUserTable).getUsers(currentUser.email);
       }
       
@@ -1943,6 +2008,9 @@
           role: document.getElementById('user-role').value
         };
         const apiCall = userData.originalEmail ? 'updateUser' : 'addUser';
+        
+        displayMessage('user-form-message', 'Menyimpan...', { isProcessing: true });
+
         google.script.run.withSuccessHandler(r => {
           if (r.status === 'success') {
             displayMessage('user-form-message', r.message, { isSuccess: true });
@@ -1958,13 +2026,25 @@
 
       function handleUserDelete(email) {
         if (confirm(`Yakin ingin menghapus akun ${email}?`)) {
+          // Tampilkan loading di tabel
+          document.getElementById('user-table-container').innerHTML = `
+            <div class="loader-container">
+              <div class="loader"><div class="ball"></div><div class="ball"></div><div class="ball"></div></div>
+              <p>Menghapus akun ${email}...</p>
+            </div>`;
           google.script.run.withSuccessHandler(r => {
             if (r.status === 'success') loadUsers();
+            else renderUserTable([]); // Jika gagal, render ulang (meskipun mungkin akan di-load ulang)
           }).deleteUser(currentUser.email, email);
         }
       }
 
       function loadAdminSettings() {
+        // Menampilkan pesan loading untuk pengaturan
+        displayMessage('announcements-message', 'Memuat...', { isProcessing: true });
+        displayMessage('locked-months-message', 'Memuat...', { isProcessing: true });
+        displayMessage('holidays-message', 'Memuat...', { isProcessing: true });
+        
         google.script.run.withSuccessHandler(settings => {
           document.getElementById('locked-months').value = settings.lockedMonths.join(',');
           document.getElementById('announcement-input').value = settings.announcements || "";
@@ -1973,6 +2053,10 @@
           if (settings.holidays && settings.holidays.length > 0) {
             settings.holidays.forEach(h => addHolidayRow(h.date, h.description));
           }
+          // Hapus pesan loading
+          displayMessage('announcements-message', '');
+          displayMessage('locked-months-message', '');
+          displayMessage('holidays-message', '');
         }).getSettings(currentUser.email);
       }
 
@@ -1987,6 +2071,7 @@
       function saveLockedMonthsSettings() {
         const input = document.getElementById('locked-months').value;
         const months = input.split(',').map(s => s.trim()).filter(Boolean);
+        displayMessage('locked-months-message', 'Menyimpan...', { isProcessing: true });
         google.script.run.withSuccessHandler(r => displayMessage('locked-months-message', r.message, { isSuccess: true })).saveLockedMonths(currentUser.email, months);
       }
       
@@ -1998,16 +2083,19 @@
           const description = row.querySelector('input[type="text"]').value;
           if (date && description) holidays.push({ date, description });
         });
+        displayMessage('holidays-message', 'Menyimpan...', { isProcessing: true });
         google.script.run.withSuccessHandler(r => displayMessage('holidays-message', r.message, { isSuccess: true })).saveHolidays(currentUser.email, holidays);
       }
 
       function saveAnnouncementsSettings() {
         const text = document.getElementById('announcement-input').value;
+        displayMessage('announcements-message', 'Menyimpan...', { isProcessing: true });
         google.script.run.withSuccessHandler(r => displayMessage('announcements-message', r.message, { isSuccess: true })).saveAnnouncements(currentUser.email, text);
       }
       
       function loadSchoolDropdown() {
         const select = document.getElementById('rekap-school');
+        select.innerHTML = '<option value="">-- Memuat Daftar Sekolah --</option>';
         google.script.run
             .withSuccessHandler(schools => {
                 select.innerHTML = '<option value="">-- Pilih Sekolah --</option>';
@@ -2177,7 +2265,12 @@
           const saveButton = document.getElementById('save-lkh-button');
           const applyWeeklyButton = document.getElementById('apply-weekly-data-button'); // 1. Ambil elemen tombol
 
-          container.innerHTML = '<p>Memuat formulir LKH...</p>';
+          // Tampilkan loading
+          container.innerHTML = `
+            <div class="loader-container">
+              <div class="loader"><div class="ball"></div><div class="ball"></div><div class="ball"></div></div>
+              <p>Memuat formulir LKH...</p>
+            </div>`;
           saveButton.disabled = true;
           applyWeeklyButton.disabled = true; // 2. Langsung nonaktifkan tombol
 
@@ -2269,7 +2362,7 @@
 
           const downloadButton = document.getElementById('download-lkh-pdf-button');
           downloadButton.disabled = true;
-          displayMessage('lkh-download-message', 'Memuat data LKH, mohon tunggu...', { isProcessing: true });
+          displayMessage('lkh-download-message', 'Memuat data pratinjau LKH...', { isProcessing: true });
           
           // --- LOGIKA BARU ---
           const lkhMonthInput = document.getElementById('lkh-view-month-input');
