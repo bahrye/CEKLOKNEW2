@@ -801,6 +801,19 @@
   #lkh-weekly-table-container th:nth-child(5),
   #lkh-weekly-table-container td:nth-child(5) { width: 10%; text-align: center; } /* Kolom Aksi */
 
+  
+  /* --- TAMBAHAN: Garis Batas Tabel LKH & LKH Mingguan --- */
+  #lkh-table-container th,
+  #lkh-table-container td,
+  #lkh-weekly-table-container th,
+  #lkh-weekly-table-container td {
+    /* Menambahkan border di semua sisi,
+       border-collapse di 'table' akan menggabungkannya */
+    border: 1px solid var(--border-color);
+  }
+  /* --- AKHIR TAMBAHAN --- */
+  
+
   /* Perbaikan untuk Tampilan Mobile */
   @media (max-width: 600px) {
     th, td {
