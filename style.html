@@ -147,6 +147,11 @@
     font-weight: 500;
     color: var(--danger-color);
     min-height: 20px;
+    /* --- PERUBAHAN DIMULAI DI SINI --- */
+    display: flex; /* Ditambahkan untuk mensejajarkan loader */
+    justify-content: center; /* Ditambahkan untuk mensejajarkan loader */
+    align-items: center; /* Ditambahkan untuk mensejajarkan loader */
+    /* --- PERUBAHAN SELESAI --- */
   }
 
   #guru-welcome-message small, #staff-welcome-message small {
@@ -948,4 +953,33 @@
     color: var(--primary-color); /* Warna ikon saat di-hover */
   }
   /* === AKHIR TAMBAHAN === */
+
+
+  /* --- TAMBAHAN BARU UNTUK LOADING PESAN --- */
+  
+  /* Kontainer untuk loader dan teks pesannya */
+  .message-with-loader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px; /* Jarak antara loader dan teks */
+  }
+  
+  /* Animasi spinner/loader */
+  .message-loader {
+    width: 16px; /* Ukuran disesuaikan dengan font pesan */
+    height: 16px;
+    border: 3px solid rgba(107, 114, 128, 0.2); /* Warna abu-abu muda */
+    border-top-color: var(--text-secondary-color); /* Warna abu-abu teks */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  /* --- AKHIR TAMBAHAN BARU --- */
+
 </style>
