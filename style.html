@@ -993,4 +993,31 @@
   #global-lock-message:empty {
     display: none;
   }
+
+  /* --- AWAL PERUBAHAN: Style Footer Link --- */
+  .main-footer {
+    text-align: center;
+    padding: 20px 15px;
+    margin-top: 20px;
+    font-size: 12px;
+    color: var(--text-secondary-color);
+  }
+
+  .main-footer p {
+    margin: 0;
+    padding: 0;
+    color: var(--text-secondary-color); /* Pastikan <p> juga mewarisi warna */
+  }
+
+  .main-footer a {
+    color: var(--text-secondary-color); /* Warna link sama dengan teks */
+    text-decoration: none; /* Hilangkan garis bawah */
+    transition: color 0.3s; /* Efek transisi saat hover */
+  }
+
+  .main-footer a:hover {
+    color: var(--text-primary-color); /* Ubah warna jadi lebih gelap saat disentuh */
+    text-decoration: underline; /* Tampilkan garis bawah saat hover (opsional) */
+  }
+  /* --- AKHIR PERUBAHAN --- */
 </style>
