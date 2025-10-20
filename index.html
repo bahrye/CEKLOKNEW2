@@ -446,6 +446,12 @@
 
       function showSptjmSettingsPage() {
           document.getElementById('lkh-sptjm-dashboard-container').style.display = 'none';
+          
+          // --- TAMBAHAN BARU UNTUK MEMPERBAIKI MASALAH TAMPILAN GANDA ---
+          document.getElementById('sptjm-view-container').style.display = 'none';
+          document.getElementById('lkh-view-container').style.display = 'none';
+          // --- AKHIR TAMBAHAN ---
+
           document.getElementById('sptjm-settings-container').style.display = 'block';
 
           const saveButton = document.getElementById('save-sptjm-settings-button');
@@ -496,12 +502,40 @@
         }).saveSptjmSettings(currentUser.email, settings);
       }
 
+      // --- FUNGSI BARU UNTUK MENGECEK PENGATURAN CETAK ---
+      function arePrintSettingsComplete(settings) {
+        if (!settings) return false;
+        
+        // Bidang yang wajib diisi (NIP Guru 'nip' & NIP Kepala 'nipKepala' dikecualikan)
+        const requiredFields = [
+          'jabatan',
+          'namaKepala',
+          // 'nipKepala', // Dihapus dari validasi wajib
+          'bulan',
+          'tempat',
+          'tanggal'
+        ];
+        
+        for (const field of requiredFields) {
+          // Cek jika bidang tidak ada, null, atau string kosong setelah di-trim
+          if (!settings[field] || String(settings[field]).trim() === '') {
+            return false; // Ditemukan bidang wajib yang kosong
+          }
+        }
+        
+        return true; // Semua bidang wajib telah diisi
+      }
+      // --- AKHIR FUNGSI BARU ---
+
       function showSptjmViewPage() {
           document.getElementById('lkh-sptjm-dashboard-container').style.display = 'none';
           document.getElementById('sptjm-view-container').style.display = 'block';
           
-          // 1. Dapatkan elemen tombol dan nonaktifkan di awal
+          // 1. Dapatkan elemen tombol dan pesan
           const downloadButton = document.getElementById('download-sptjm-pdf-button');
+          const messageElement = document.getElementById('sptjm-download-message');
+          
+          // 2. Nonaktifkan tombol di awal
           downloadButton.disabled = true;
 
           // Menampilkan pesan "Memuat..." saat data diambil
@@ -515,14 +549,15 @@
             if(el) el.innerText = "Memuat...";
           });
           
-          // Menampilkan pesan loading
+          // 3. Tampilkan pesan loading menggunakan displayMessage
           displayMessage('sptjm-download-message', 'Memuat data pratinjau...', { isProcessing: true });
 
           google.script.run
               .withSuccessHandler(data => {
                   if (data.error) {
+                      // Gagal memuat data, tampilkan error
                       displayMessage('sptjm-download-message', data.error);
-                      return; // Tombol tetap nonaktif jika ada error
+                      return; // Tombol tetap nonaktif
                   }
                   const settings = data.settings || {};
                   const user = data.user || {};
@@ -541,10 +576,21 @@
                   document.getElementById('sptjm-view-headmaster-name').innerText = settings.namaKepala || '[Nama Kepala Madrasah]';
                   document.getElementById('sptjm-view-headmaster-nip').innerText = settings.nipKepala || '-';
                   
-                  // 2. Aktifkan tombol setelah semua data berhasil dimuat
-                  downloadButton.disabled = false;
-                  // Hapus pesan loading
-                  displayMessage('sptjm-download-message', '');
+                  // --- AWAL PERUBAHAN LOGIKA ---
+                  // 4. Cek kelengkapan pengaturan
+                  const settingsComplete = arePrintSettingsComplete(settings);
+
+                  if (settingsComplete) {
+                      // 5. Jika lengkap: Aktifkan tombol dan hapus pesan
+                      downloadButton.disabled = false;
+                      messageElement.innerHTML = ''; // Hapus pesan loading/error
+                  } else {
+                      // 6. Jika tidak lengkap: Tombol tetap nonaktif dan tampilkan pesan permanen
+                      downloadButton.disabled = true;
+                      messageElement.innerHTML = 'Tombol Unduh PDF akan aktif setelah Pengaturan Cetak dilengkapi. <a href="#" onclick="event.preventDefault(); showSptjmSettingsPage();">Lengkapi Sekarang</a>';
+                      messageElement.style.color = 'var(--text-secondary-color)'; // Atur warna pesan
+                  }
+                  // --- AKHIR PERUBAHAN LOGIKA ---
               })
               .withFailureHandler(err => {
                   displayMessage('sptjm-download-message', `Error: ${err.message}`);
@@ -2370,8 +2416,14 @@
           document.getElementById('lkh-sptjm-dashboard-container').style.display = 'none';
           document.getElementById('lkh-view-container').style.display = 'block';
 
+          // 1. Dapatkan elemen tombol dan pesan
           const downloadButton = document.getElementById('download-lkh-pdf-button');
+          const messageElement = document.getElementById('lkh-download-message');
+          
+          // 2. Nonaktifkan tombol di awal
           downloadButton.disabled = true;
+          
+          // 3. Tampilkan pesan loading
           displayMessage('lkh-download-message', 'Memuat data pratinjau LKH...', { isProcessing: true });
           
           // --- LOGIKA BARU ---
@@ -2420,8 +2472,22 @@
                           tableBody.innerHTML = '<tr><td colspan="6" style="border: 1px solid black; padding: 8px; text-align: center;">Tidak ada data kegiatan untuk bulan ini.</td></tr>';
                       }
 
-                      downloadButton.disabled = false;
-                      displayMessage('lkh-download-message', 'Pratinjau siap. Klik untuk mengunduh.', { isSuccess: true });
+                      // --- AWAL PERUBAHAN LOGIKA ---
+                      // 4. Cek kelengkapan pengaturan
+                      const settingsComplete = arePrintSettingsComplete(data.settings || {});
+
+                      if (settingsComplete) {
+                          // 5. Jika lengkap: Aktifkan tombol dan tampilkan pesan sukses
+                          downloadButton.disabled = false;
+                          displayMessage('lkh-download-message', 'Pratinjau siap. Klik untuk mengunduh.', { isSuccess: true });
+                      } else {
+                          // 6. Jika tidak lengkap: Tombol tetap nonaktif dan tampilkan pesan permanen
+                          downloadButton.disabled = true;
+                          messageElement.innerHTML = 'Tombol Unduh PDF akan aktif setelah Pengaturan Cetak dilengkapi. <a href="#" onclick="event.preventDefault(); showSptjmSettingsPage();">Lengkapi Sekarang</a>';
+                          messageElement.style.color = 'var(--text-secondary-color)'; // Atur warna pesan
+                      }
+                      // --- AKHIR PERUBAHAN LOGIKA ---
+
                   } else {
                       displayMessage('lkh-download-message', `Error: ${response.error}`);
                   }
