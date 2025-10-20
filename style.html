@@ -817,7 +817,19 @@
     border: 1px solid var(--border-color);
   }
   /* --- AKHIR TAMBAHAN --- */
-  
+
+  /* --- TAMBAHAN: Style untuk Link di dalam Pesan --- */
+  .message a {
+    color: var(--primary-color);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color 0.3s;
+  }
+  .message a:hover {
+    color: var(--primary-hover-color);
+  }
+  /* --- AKHIR TAMBAHAN --- */
 
   /* Perbaikan untuk Tampilan Mobile */
   @media (max-width: 600px) {
