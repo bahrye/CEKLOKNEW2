@@ -115,10 +115,6 @@
               <i class="fa-solid fa-file-signature"></i> <span>LKH dan SPTJM</span>
             </button>
 
-            <button id="ajukan-perubahan-button" class="action-button warning" onclick="showAjuanPerubahanPage()">
-              <i class="fa-solid fa-clock-rotate-left"></i> <span>Ajukan Perubahan Data</span>
-            </button>
-
             <button id="setting-libur-button" class="action-button secondary" onclick="showTeacherHolidaySettings()">
               <i class="fa-solid fa-gear"></i> <span>Setting Hari Libur Guru</span>
             </button>
@@ -230,17 +226,6 @@
             </div>
             <p id="staff-emis-message" class="message" style="margin-top: 5px;"></p>
           </div>
-          <hr style="margin: 25px 0;">
-          
-          <h3>PERUBAHAN DATA</h3>
-          <div class="dashboard-actions" style="margin-top: 10px;">
-            <button class="action-button warning" onclick="showPengajuanPerubahanPage()">
-              <i class="fa-solid fa-inbox"></i> 
-              <span>Pengajuan Perubahan Data</span>
-              <span id="staff-ajuan-badge" class="badge" style="display:none;">0</span>
-            </button>
-          </div>
-
           <hr style="margin: 25px 0; border: none; border-top: 1px solid #E5E7EB;">
           <button class="logout" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span></button>
         </div>
@@ -315,9 +300,6 @@
               <div class="nav-tabs">
                   <div class="nav-tab active" onclick="openTab(event, 'kelola-akun')">Kelola Akun</div>
                   <div class="nav-tab" onclick="openTab(event, 'pengaturan')">Pengaturan</div>
-                  <div class="nav-tab" onclick="openTab(event, 'pengajuan')">
-                    Pengajuan Data <span id="admin-ajuan-badge" class="badge" style="display:none;">0</span>
-                  </div>
               </div>
               
               <div id="kelola-akun" class="tab-content active">
@@ -366,16 +348,7 @@
                       <i class="fa-solid fa-file-pdf"></i> <span>Buat Rekap & Unduh</span>
                   </button>
                   <p id="rekap-message" class="message"></p>
-              </div>
-
-              <div id="pengajuan" class="tab-content">
-                  <h3>Daftar Pengajuan Perubahan Data</h3>
-                  <p>Setujui atau tolak pengajuan perubahan data absensi dari guru. Daftar ini menampilkan ajuan dari semua sekolah.</p>
-                  <div id="admin-pengajuan-table-container">
-                    <p>Memuat daftar pengajuan...</p>
                   </div>
-                  <p id="admin-pengajuan-message" class="message"></p>
-              </div>
 
               <button class="logout" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span></button>
           </div>
@@ -387,63 +360,6 @@
       <?!= include('lkh'); ?>
       <?!= include('lkh_view'); ?>
       <?!= include('lkh_weekly'); ?>
-
-      <div id="ajuan-perubahan-container" style="display:none;">
-          <div class="card">
-            <button class="back-button" onclick="goBackToDashboard()">&larr; Kembali ke Dasbor</button>
-            <h2 style="margin-top: 15px;">Ajukan Perubahan Data</h2>
-            <h3 id="ajuan-perubahan-month-display" style="margin-top: -10px; margin-bottom: 15px; font-weight: 500; color: var(--text-secondary-color);">Memuat...</h3>
-            <p>Halaman ini untuk mengubah data absensi <strong>bulan lalu yang sudah terkunci</strong>. Data yang Anda ubah akan diajukan ke Staff/Admin untuk disetujui.</p>
-            
-            <div id="ajuan-attendance-table-container">
-              <div class="loader-container">
-                <div class="loader"><div class="ball"></div><div class="ball"></div><div class="ball"></div></div>
-                <p>Memuat data absensi bulan lalu...</p>
-              </div>
-            </div>
-            
-            <button id="propose-changes-button" onclick="handleProposeChanges()" style="display:none;"><i class="fa-solid fa-paper-plane"></i> <span>Ajukan Perubahan</span></button>
-            <p id="propose-changes-message" class="message"></p>
-            
-            <div id="ajuan-confirmation-container" class="confirmation-container" style="display:none;">
-              <h4>Konfirmasi Perubahan Data</h4>
-              <p>Berikut adalah data yang akan Anda ajukan untuk diubah. Periksa kembali sebelum mengirim.</p>
-              <div id="ajuan-confirmation-table-container" class="table-scroll-wrapper">
-              </div>
-              <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button id="submit-ajuan-button" onclick="handleSubmitAjuan()"><i class="fa-solid fa-check"></i> <span>Kirim Ajuan</span></button>
-                <button id="cancel-ajuan-button" onclick="handleCancelConfirmation()" class="action-button secondary"><i class="fa-solid fa-times"></i> <span>Batal</span></button>
-              </div>
-            </div>
-            
-            <div id="ajuan-pending-container" class="pending-container" style="display:none;">
-               <h4><i class="fa-solid fa-hourglass-half"></i> Ajuan Anda Sedang Ditinjau</h4>
-               <p>Anda telah mengajukan perubahan untuk bulan ini. Status: <strong>Menunggu Persetujuan</strong>.</p>
-               <p>Perubahan yang diajukan:</p>
-               <div id="ajuan-pending-table-container" class="table-scroll-wrapper">
-               </div>
-               <button id="cancel-pending-ajuan-button" onclick="handleCancelPendingAjuan()" class="action-button secondary" style="background-color: var(--danger-color); margin-top: 15px;"><i class="fa-solid fa-trash"></i> <span>Batalkan Ajuan</span></button>
-               <p id="cancel-pending-message" class="message"></p>
-            </div>
-
-          </div>
-      </div>
-
-      <div id="pengajuan-perubahan-container" style="display:none;">
-        <div class="card">
-          <button class="back-button" onclick="goBackToDashboard()">&larr; Kembali ke Dasbor</button>
-          <h2 style="margin-top: 15px;" id="pengajuan-perubahan-title">Daftar Pengajuan Perubahan Data</h2>
-          <p id="pengajuan-perubahan-subtitle">Memuat data...</p>
-          
-          <div id="pengajuan-list-table-container" class="table-scroll-wrapper" style="margin-top: 20px;">
-            <div class="loader-container">
-              <div class="loader"><div class="ball"></div><div class="ball"></div><div class="ball"></div></div>
-              <p>Memuat daftar pengajuan...</p>
-            </div>
-          </div>
-          <p id="pengajuan-list-message" class="message"></p>
-        </div>
-      </div>
 
       <footer class="main-footer">
         <a href="https://wa.me/qr/FMVS3NLDIRUAA1" target="_blank" rel="noopener noreferrer">
@@ -487,16 +403,17 @@
       let selectedTeacherForStaff = null; 
       let schoolTeachers = []; 
       let latestRequestToken = 0;
-      let originalAttendanceData = {};
-      let ajuanBulanLalu = { year: null, month: null, monthName: "" };
       const SPREADSHEET_ID = "1EIQY1DeGcwhEaYojbGMah-S5HbtsrON5YRy37bl_vLg";
 
+      // --- FUNGSI displayMessage SEKARANG DIPERBARUI ---
       function displayMessage(elementId, text, options = {}) {
         const { isSuccess = false, isProcessing = false } = options;
         const msgElem = document.getElementById(elementId);
         if (msgElem) {
           
+          // --- PERUBAHAN DIMULAI DI SINI ---
           if (isProcessing) {
+            // Tampilkan loader dan teks
             msgElem.innerHTML = `
               <div class="message-with-loader">
                 <div class="message-loader"></div>
@@ -505,19 +422,22 @@
             `;
             msgElem.style.color = 'var(--text-secondary-color)';
           } else {
-            msgElem.innerHTML = `<span>${text}</span>`;
+            // Tampilkan teks biasa (untuk sukses atau error)
+            msgElem.innerHTML = `<span>${text}</span>`; // Bungkus dengan span
             
             if (isSuccess) {
               msgElem.style.color = 'var(--success-color)';
-            } else {
+            } else { // isError
               msgElem.style.color = 'var(--danger-color)';
             }
           }
+          // --- PERUBAHAN SELESAI ---
 
           if (!isProcessing) {
             setTimeout(() => {
+              // Cek menggunakan textContent yang akan mengambil teks di dalam span
               if (msgElem.textContent === text) { 
-                msgElem.innerHTML = '';
+                msgElem.innerHTML = ''; // Hapus loader/pesan
               }
             }, 10000);
           }
@@ -527,13 +447,15 @@
       function showSptjmSettingsPage() {
           document.getElementById('lkh-sptjm-dashboard-container').style.display = 'none';
           
+          // --- TAMBAHAN BARU UNTUK MEMPERBAIKI MASALAH TAMPILAN GANDA ---
           document.getElementById('sptjm-view-container').style.display = 'none';
           document.getElementById('lkh-view-container').style.display = 'none';
+          // --- AKHIR TAMBAHAN ---
 
           document.getElementById('sptjm-settings-container').style.display = 'block';
 
           const saveButton = document.getElementById('save-sptjm-settings-button');
-          saveButton.disabled = true;
+          saveButton.disabled = true; // Nonaktifkan tombol saat halaman dibuka
 
           google.script.run
             .withSuccessHandler(settings => {
@@ -546,17 +468,19 @@
                 document.getElementById('sptjm-nama-kepala').value = settings.namaKepala || '';
                 document.getElementById('sptjm-nip-kepala').value = settings.nipKepala || '';
               }
-              saveButton.disabled = false;
+              saveButton.disabled = false; // Aktifkan tombol setelah data dimuat
             })
             .withFailureHandler(error => {
                 displayMessage('sptjm-settings-message', error.message);
                 console.error('Error saat memuat pengaturan:', error);
+                // Tombol tetap nonaktif jika gagal
             })
             .getSptjmSettings(currentUser.email);
       }
 
       function handleSaveSptjmSettings() {
         const settings = {
+          // Properti yang sudah dihapus tidak lagi dibaca
           nip: document.getElementById('sptjm-nip').value,
           jabatan: document.getElementById('sptjm-jabatan').value,
           bulan: document.getElementById('sptjm-bulan').value,
@@ -571,42 +495,50 @@
         google.script.run.withSuccessHandler(response => {
           if (response.status === 'success') {
             displayMessage('sptjm-settings-message', response.message, { isSuccess: true });
-            setTimeout(showLkhSptjmDashboard, 2000);
+            setTimeout(showLkhSptjmDashboard, 2000); // Kembali ke dasbor LKH setelah 2 detik
           } else {
             displayMessage('sptjm-settings-message', response.message);
           }
         }).saveSptjmSettings(currentUser.email, settings);
       }
 
+      // --- FUNGSI BARU UNTUK MENGECEK PENGATURAN CETAK ---
       function arePrintSettingsComplete(settings) {
         if (!settings) return false;
         
+        // Bidang yang wajib diisi (NIP Guru 'nip' & NIP Kepala 'nipKepala' dikecualikan)
         const requiredFields = [
           'jabatan',
           'namaKepala',
+          // 'nipKepala', // Dihapus dari validasi wajib
           'bulan',
           'tempat',
           'tanggal'
         ];
         
         for (const field of requiredFields) {
+          // Cek jika bidang tidak ada, null, atau string kosong setelah di-trim
           if (!settings[field] || String(settings[field]).trim() === '') {
-            return false;
+            return false; // Ditemukan bidang wajib yang kosong
           }
         }
         
-        return true;
+        return true; // Semua bidang wajib telah diisi
       }
+      // --- AKHIR FUNGSI BARU ---
 
       function showSptjmViewPage() {
           document.getElementById('lkh-sptjm-dashboard-container').style.display = 'none';
           document.getElementById('sptjm-view-container').style.display = 'block';
           
+          // 1. Dapatkan elemen tombol dan pesan
           const downloadButton = document.getElementById('download-sptjm-pdf-button');
           const messageElement = document.getElementById('sptjm-download-message');
           
+          // 2. Nonaktifkan tombol di awal
           downloadButton.disabled = true;
 
+          // Menampilkan pesan "Memuat..." saat data diambil
           const fieldsToLoad = [
               'sptjm-view-name', 'sptjm-view-nip', 'sptjm-view-jabatan', 'sptjm-view-satker', 
               'sptjm-view-month', 'sptjm-view-headmaster-name', 'sptjm-view-headmaster-nip',
@@ -617,13 +549,15 @@
             if(el) el.innerText = "Memuat...";
           });
           
+          // 3. Tampilkan pesan loading menggunakan displayMessage
           displayMessage('sptjm-download-message', 'Memuat data pratinjau...', { isProcessing: true });
 
           google.script.run
               .withSuccessHandler(data => {
                   if (data.error) {
+                      // Gagal memuat data, tampilkan error
                       displayMessage('sptjm-download-message', data.error);
-                      return;
+                      return; // Tombol tetap nonaktif
                   }
                   const settings = data.settings || {};
                   const user = data.user || {};
@@ -642,19 +576,25 @@
                   document.getElementById('sptjm-view-headmaster-name').innerText = settings.namaKepala || '[Nama Kepala Madrasah]';
                   document.getElementById('sptjm-view-headmaster-nip').innerText = settings.nipKepala || '-';
                   
+                  // --- AWAL PERUBAHAN LOGIKA ---
+                  // 4. Cek kelengkapan pengaturan
                   const settingsComplete = arePrintSettingsComplete(settings);
 
                   if (settingsComplete) {
+                      // 5. Jika lengkap: Aktifkan tombol dan hapus pesan
                       downloadButton.disabled = false;
-                      messageElement.innerHTML = '';
+                      messageElement.innerHTML = ''; // Hapus pesan loading/error
                   } else {
+                      // 6. Jika tidak lengkap: Tombol tetap nonaktif dan tampilkan pesan permanen
                       downloadButton.disabled = true;
                       messageElement.innerHTML = 'Tombol Unduh PDF akan aktif setelah Pengaturan Cetak dilengkapi. <a href="#" onclick="event.preventDefault(); showSptjmSettingsPage();">Lengkapi Sekarang</a>';
-                      messageElement.style.color = 'var(--text-secondary-color)';
+                      messageElement.style.color = 'var(--text-secondary-color)'; // Atur warna pesan
                   }
+                  // --- AKHIR PERUBAHAN LOGIKA ---
               })
               .withFailureHandler(err => {
                   displayMessage('sptjm-download-message', `Error: ${err.message}`);
+                  // Tombol tetap nonaktif jika ada error
               })
               .getSptjmDataForUser(currentUser.email, selectedSchool);
       }
@@ -665,6 +605,7 @@
           button.querySelector('span').textContent = 'Membuat PDF...';
           displayMessage('sptjm-download-message', 'Sedang memproses & membuat PDF, mohon tunggu...', { isProcessing: true });
 
+          // Mengumpulkan semua data dari tampilan untuk dikirim ke server
           const data = {
               name: document.getElementById('sptjm-view-name').innerText,
               nip: document.getElementById('sptjm-view-nip').innerText,
@@ -738,6 +679,7 @@
       function renderLkhWeeklyTable(existingData) {
         const container = document.getElementById('lkh-weekly-table-container');
         const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        // Menambahkan header kolom "AKSI"
         let tableHTML = '<table><thead><tr><th>HARI</th><th>URAIAN KEGIATAN</th><th>HASIL / OUTPUT</th><th>VOL</th><th>AKSI</th></tr></thead><tbody>';
         
         days.forEach(day => {
@@ -798,10 +740,14 @@
       // INISIALISASI & OTENTIKASI
       // ===================================================================
       document.addEventListener('DOMContentLoaded', () => {
+        // --- AWAL PERUBAHAN: Set Tahun Otomatis ---
         document.getElementById('currentYear').textContent = new Date().getFullYear();
+        // --- AKHIR PERUBAHAN ---
 
         const token = localStorage.getItem('ceklokAuthToken');
         if (token) {
+          // --- PERUBAHAN DIMULAI (LOGIKA BARU) ---
+          // 1. Langsung coba tampilkan dasbor dari localStorage
           try {
             currentUser = JSON.parse(localStorage.getItem('ceklokUser'));
             selectedSchool = localStorage.getItem('ceklokSelectedSchool');
@@ -815,31 +761,39 @@
                 showGuruDashboard(currentUser);
               }
             } else {
+                // Jika data di localStorage tidak lengkap, tampilkan login
                 document.getElementById("login-container").style.display = 'block';
             }
           } catch (e) {
+              // Jika ada error saat parsing, fallback ke halaman login
               document.getElementById("login-container").style.display = 'block';
           }
+          // --- AKHIR PERUBAHAN (LOGIKA BARU) ---
 
+          // 2. Lakukan verifikasi token di latar belakang
           google.script.run
             .withSuccessHandler(response => {
               if (response.status !== "success") {
+                // Jika token tidak valid, logout pengguna
                 handleLogout();
                 displayMessage('login-message', "Sesi Anda telah berakhir. Silakan login kembali.");
               }
+              // Jika sukses, tidak perlu melakukan apa-apa karena dasbor sudah ditampilkan
             })
             .withFailureHandler(error => {
+              // Jika verifikasi gagal, logout pengguna
               handleLogout();
               displayMessage('login-message', "Gagal memverifikasi sesi. Silakan login kembali.");
             })
             .verifyToken(token);
 
         } else {
+            // Jika tidak ada token, pastikan halaman login ditampilkan
             document.getElementById("login-container").style.display = 'block';
         }
 
         const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
+        const passwordInput = document.getElementById('password'); // Variabel sudah ada
         const loginOnEnter = (event) => {
           if (event.key === 'Enter') {
             event.preventDefault();
@@ -849,17 +803,22 @@
         emailInput.addEventListener('keyup', loginOnEnter);
         passwordInput.addEventListener('keyup', loginOnEnter);
         
+        // ==== PERUBAHAN DIMULAI DI SINI (JavaScript untuk ikon mata) ====
         const toggleIcon = document.getElementById('togglePassword');
         
+        // Cek jika passwordInput (dari atas) dan toggleIcon ada
         if (passwordInput && toggleIcon) {
           toggleIcon.addEventListener('click', function () {
+            // Cek tipe input saat ini
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
             
+            // Ganti ikon
             this.classList.toggle('fa-eye');
             this.classList.toggle('fa-eye-slash');
           });
         }
+        // ==== PERUBAHAN SELESAI ====
       });
       
       function handleLogin() {
@@ -872,6 +831,7 @@
         }
         button.disabled = true;
         button.querySelector('span').textContent = "Mencoba Login...";
+        // Menampilkan loading saat login
         displayMessage('login-message', 'Mencoba login...', { isProcessing: true });
         
         google.script.run
@@ -879,11 +839,13 @@
             button.disabled = false;
             button.querySelector('span').textContent = "Login";
             if (response.status === "success") {
+              // --- PERUBAHAN DIMULAI ---
               localStorage.setItem('ceklokAuthToken', response.token);
               localStorage.setItem('ceklokUser', JSON.stringify(response.user));
+              // --- PERUBAHAN SELESAI ---
               
               currentUser = response.user;
-              displayMessage('login-message', '');
+              displayMessage('login-message', ''); // Hapus pesan loading
               
               if (currentUser.role === 'admin') {
                 showAdminDashboard(currentUser);
@@ -891,7 +853,9 @@
                 showSchoolSelection(currentUser.schools);
               } else if (currentUser.schools && currentUser.schools.length === 1) {
                 selectedSchool = currentUser.schools[0];
+                // --- PERUBAHAN DIMULAI ---
                 localStorage.setItem('ceklokSelectedSchool', selectedSchool);
+                // --- PERUBAHAN SELESAI ---
                 if (currentUser.role === 'staff') {
                     showStaffDashboard(currentUser);
                 } else {
@@ -928,7 +892,9 @@
       function handleSchoolSelection() {
         selectedSchool = document.getElementById('school-select').value;
         if (selectedSchool) {
+          // --- PERUBAHAN DIMULAI ---
           localStorage.setItem('ceklokSelectedSchool', selectedSchool);
+          // --- PERUBAHAN SELESAI ---
           document.getElementById('school-selection-container').style.display = 'none';
           if (currentUser.role === 'staff') {
             showStaffDashboard(currentUser);
@@ -939,22 +905,24 @@
       }
 
       function handleLogout() {
+        // --- PERUBAHAN DIMULAI ---
         const token = localStorage.getItem('ceklokAuthToken');
         if(token) {
+          // Panggil server untuk menghapus token
           google.script.run.userLogout(token);
         }
         localStorage.removeItem('ceklokUser');
         localStorage.removeItem('ceklokSelectedSchool');
         localStorage.removeItem('ceklokAuthToken');
+        // --- PERUBAHAN SELESAI ---
 
         currentUser = null;
         selectedSchool = null;
         currentDate = new Date();
         selectedTeacherForStaff = null;
         schoolTeachers = [];
-        originalAttendanceData = {};
-        ajuanBulanLalu = { year: null, month: null, monthName: "" };
 
+        // Pastikan kontainer login dikembalikan ke bentuk aslinya
         const loginContainer = document.getElementById("login-container");
         loginContainer.innerHTML = `
            <form id="login-form" onsubmit="event.preventDefault(); handleLogin();">
@@ -979,6 +947,8 @@
            </form>
         `;
 
+        // ==== TAMBAHAN KODE SAAT LOGOUT ====
+        // Kita harus mendaftarkan ulang event listener untuk form login yang baru dibuat
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
         const toggleIcon = document.getElementById('togglePassword');
@@ -1000,6 +970,7 @@
             this.classList.toggle('fa-eye-slash');
           });
         }
+        // ==== AKHIR TAMBAHAN ====
 
         loginContainer.style.display = "block";
         document.getElementById("school-selection-container").style.display = "none";
@@ -1017,8 +988,6 @@
         document.getElementById("lkh-view-container").style.display = "none";
         document.getElementById("lkh-weekly-container").style.display = "none";
         document.getElementById("all-teachers-summary-container").style.display = "none";
-        document.getElementById("ajuan-perubahan-container").style.display = "none";
-        document.getElementById("pengajuan-perubahan-container").style.display = "none";
 
         displayMessage('login-message', "Anda berhasil logout.", { isSuccess: true });
       }
@@ -1046,8 +1015,6 @@
           document.getElementById("lkh-sptjm-dashboard-container").style.display = "none";
           document.getElementById("lkh-weekly-container").style.display = "none";
           document.getElementById("all-teachers-summary-container").style.display = "none";
-          document.getElementById("ajuan-perubahan-container").style.display = "none";
-          document.getElementById("pengajuan-perubahan-container").style.display = "none";
           document.getElementById("guru-dashboard-container").style.display = "block";
           
           const welcomeH2 = document.getElementById('guru-welcome-message');
@@ -1067,6 +1034,7 @@
             lkhButton.style.display = 'none';
           }
 
+          // Tampilkan loading untuk pengumuman
           renderAnnouncements("Memuat pengumuman...", true);
 
           google.script.run.withSuccessHandler(response => {
@@ -1075,7 +1043,6 @@
           }).getAppSettingsForUser(currentUser.email, selectedSchool, currentDate.getFullYear(), currentDate.getMonth() + 1);
 
           loadAndRenderSummary();
-          checkGuruPendingAjuan();
       }
       
       function openSchoolSwitcherModal() {
@@ -1103,7 +1070,9 @@
         closeSchoolSwitcherModal();
         if (newSchool && newSchool !== selectedSchool) {
           selectedSchool = newSchool;
+          // --- PERUBAHAN DIMULAI ---
           localStorage.setItem('ceklokSelectedSchool', selectedSchool);
+          // --- PERUBAHAN SELESAI ---
           
           if (currentUser.role === 'guru') {
             showGuruDashboard(); 
@@ -1157,6 +1126,7 @@
         document.getElementById('emis-export-title').innerText = `Eksport Data Kehadiran - ${selectedSchool}`;
       }
       
+      // Modifikasi renderAnnouncements untuk menangani isProcessing
       function renderAnnouncements(text, isProcessing = false) {
         const p = document.getElementById('announcement-text');
         const defaultText = "Tidak ada pengumuman saat ini.";
@@ -1184,6 +1154,7 @@
           const currentToken = latestRequestToken;
 
           document.getElementById('month-display').innerText = date.toLocaleString('id-ID', { month: 'long', year: 'numeric' });
+          // Tampilkan loading
           document.getElementById('attendance-table-container').innerHTML = `
             <div class="loader-container">
               <div class="loader">
@@ -1202,7 +1173,7 @@
               appSettings.lockedMonths = response.lockedMonths;
               appSettings.holidays = response.holidays;
               appSettings.teacherHolidays = response.teacherHolidays;
-              generateMonthTable(year, month, response.attendance, 'attendance-table-container', false);
+              generateMonthTable(year, month, response.attendance);
             })
             .withFailureHandler(error => {
                 document.getElementById('attendance-table-container').innerHTML = `<p style="color: var(--danger-color);">Gagal memuat data absensi.</p>`;
@@ -1216,8 +1187,10 @@
         let originalValue = value;
         let lastChar = value.slice(-1);
 
+        // Hanya izinkan angka, titik, atau titik dua
         value = value.replace(/[^0-9.:]/g, '');
 
+        // Jika pengguna mengetik titik atau titik dua, langsung format
         if ((lastChar === '.' || lastChar === ':') && value.length <= 3 && !value.includes(':')) {
           let digitsOnly = value.replace(/\D/g, '');
           if (digitsOnly.length > 0 && digitsOnly.length <= 2) {
@@ -1226,11 +1199,13 @@
         } else {
           let digits = value.replace(/\D/g, '');
 
+          // Validasi Jam
           if (digits.length >= 2) {
             if (parseInt(digits.substring(0, 2)) > 23) {
               digits = digits.substring(0, 1);
             }
           }
+          // Validasi Menit
           if (digits.length >= 3) {
             if (parseInt(digits.substring(2, 3)) > 5) {
               digits = digits.substring(0, 2);
@@ -1241,6 +1216,7 @@
             digits = digits.substring(0, 4);
           }
 
+          // Format otomatis
           if (digits.length > 2) {
             value = digits.substring(0, 2) + ':' + digits.substring(2);
           } else {
@@ -1251,8 +1227,8 @@
         input.value = value;
       }
 
-      function generateMonthTable(year, month, attendanceData, containerId = 'attendance-table-container', forceEnable = false) {
-          const container = document.getElementById(containerId);
+      function generateMonthTable(year, month, attendanceData) {
+          const container = document.getElementById('attendance-table-container');
 
           const reasonOptions = `
               <option value="">-- Pilih Alasan --</option>
@@ -1302,15 +1278,14 @@
           const currentMonth = today.getMonth() + 1;
           const isFutureMonth = year > currentYear || (year === currentYear && month > currentMonth);
           
-          const isDisabled = (isMonthLocked || isFutureMonth) && !forceEnable;
+          // **VARIABEL KUNCI**
+          const isDisabled = isMonthLocked || isFutureMonth;
 
-          if (containerId === 'attendance-table-container') {
-            let lockMessage = "";
-            if(isMonthLocked) lockMessage = 'Absensi untuk bulan ini telah dikunci.';
-            else if (isFutureMonth) lockMessage = 'Anda belum bisa mengisi absensi untuk bulan depan.';
-            document.getElementById('global-lock-message').innerText = lockMessage;
-            document.getElementById('save-button').disabled = isDisabled;
-          }
+          let lockMessage = "";
+          if(isMonthLocked) lockMessage = 'Absensi untuk bulan ini telah dikunci.';
+          else if (isFutureMonth) lockMessage = 'Anda belum bisa mengisi absensi untuk bulan depan.';
+          document.getElementById('global-lock-message').innerText = lockMessage;
+          document.getElementById('save-button').disabled = isDisabled;
 
           let tableHTML = '<div class="table-scroll-wrapper"><table><thead><tr><th>Tanggal</th><th>Jam Masuk</th><th>Jam Pulang</th><th>Keterangan</th><th>Aksi</th></tr></thead><tbody>';
           
@@ -1329,27 +1304,28 @@
             } else if (isSunday) {
               tableHTML += `<tr id="row-${dateStr}" class="sunday-row"><td>${day} <small>(${dayName})</small></td><td colspan="3">Hari Libur</td><td></td></tr>`;
             } 
+            // --- PERUBAHAN UTAMA DI SINI ---
             else if (!isFutureMonth && isTeacherHoliday && (!existingData || (existingData.checkIn === "" && existingData.checkOut === "" && existingData.reason === ""))) {
+                // Perhatikan penambahan 'isDisabled' pada <select> dan <button>
                 tableHTML += `<tr id="row-${dateStr}"><td>${day} <small>(${dayName})</small></td><td><input type="text" class="time-entry" id="in-${dateStr}" disabled></td><td><input type="text" class="time-entry" id="out-${dateStr}" disabled></td><td><select id="reason-${dateStr}" onchange="handleReasonChange(event)" ${isDisabled ? 'disabled' : ''}>${teacherHolidayReasonOptions}</select></td><td><button class="clear-btn" onclick="handleClearRow(event)" ${isDisabled ? 'disabled' : ''}>Hapus</button></td></tr>`;
             }
+            // --- AKHIR PERUBAHAN ---
             else {
+              // Blok ini sudah benar, tidak perlu diubah.
+              // Variabel 'isDisabled' sudah diterapkan dengan benar di sini.
               tableHTML += `<tr id="row-${dateStr}"><td>${day} <small>(${dayName})</small></td><td><input type="text" class="time-entry" id="in-${dateStr}" placeholder="HH:MM" maxlength="5" inputmode="numeric" oninput="handleTimeInput(event)" ${isDisabled ? 'disabled' : ''}></td><td><input type="text" class="time-entry" id="out-${dateStr}" placeholder="HH:MM" maxlength="5" inputmode="numeric" oninput="handleTimeInput(event)" ${isDisabled ? 'disabled' : ''}></td><td><select id="reason-${dateStr}" ${isDisabled ? 'disabled' : ''} onchange="handleReasonChange(event)">${reasonOptions}</select></td><td><button class="clear-btn" onclick="handleClearRow(event)" ${isDisabled ? 'disabled' : ''}>Hapus</button></td></tr>`;
             }
           }
           tableHTML += '</tbody></table></div>';
           container.innerHTML = tableHTML;
-          populateAttendanceData(attendanceData, containerId);
+          populateAttendanceData(attendanceData);
       }
       
-      function populateAttendanceData(data, containerId) {
-        const container = document.getElementById(containerId);
-        if (!container) return;
-        
+      function populateAttendanceData(data) {
         for (const date in data) {
-          const checkInInput = container.querySelector(`#in-${date}`);
-          const checkOutInput = container.querySelector(`#out-${date}`);
-          const reasonSelect = container.querySelector(`#reason-${date}`);
-          
+          const checkInInput = document.getElementById(`in-${date}`);
+          const checkOutInput = document.getElementById(`out-${date}`);
+          const reasonSelect = document.getElementById(`reason-${date}`);
           if (checkInInput) checkInInput.value = data[date].checkIn;
           if (checkOutInput) checkOutInput.value = data[date].checkOut;
 
@@ -1474,6 +1450,7 @@
           const [targetYear, targetMonth] = summaryMonthInput.value.split('-').map(Number);
 
           const summaryValues = document.querySelectorAll('.summary-value');
+          // Tampilkan loading di ringkasan
           summaryValues.forEach(el => el.innerHTML = '...');
 
           google.script.run
@@ -1524,12 +1501,14 @@
               alasanEl.style.color = 'var(--primary-color)';
           }
 
+          // Logika untuk warna angka Alpa
           if (parseInt(summary.alpa) > 0) {
               alpaEl.style.color = 'var(--danger-color)';
           } else {
               alpaEl.style.color = 'var(--success-color)';
           }
           
+          // Logika untuk menambahkan atau menghapus efek glow
           if (summary.alpaUpToToday > 0) {
               alpaBox.classList.add('alpa-warning');
           } else {
@@ -1582,7 +1561,7 @@
                 }
                 button.disabled = false;
                 button.querySelector('span').textContent = 'Simpan Pengaturan';
-                displayMessage('teacher-holidays-message', '');
+                displayMessage('teacher-holidays-message', ''); // Hapus pesan loading
             })
             .withFailureHandler(err => {
                 displayMessage('teacher-holidays-message', 'Gagal memuat pengaturan: ' + err.message);
@@ -1733,6 +1712,7 @@
           }
           const [year, month] = monthInput.value.split('-').map(Number);
           const container = document.getElementById('all-teachers-summary-table-container');
+          // --- PERUBAHAN DIMULAI ---
           container.innerHTML = `
             <div class="loader-container">
               <div class="loader">
@@ -1742,6 +1722,7 @@
               </div>
               <p>Memuat ringkasan, mohon tunggu...</p>
             </div>`;
+          // --- PERUBAHAN SELESAI ---
 
           google.script.run
             .withSuccessHandler(summaries => {
@@ -1761,6 +1742,7 @@
         
         if (summaries && summaries.length > 0) {
           summaries.forEach(item => {
+            // --- AWAL PERUBAHAN ---
             let rowClass = '';
             if (item.summary.persentase === 100) {
               rowClass = 'summary-row-complete';
@@ -1779,8 +1761,10 @@
                 <td>${item.summary.ceklok}</td>
               </tr>
             `;
+            // --- AKHIR PERUBAHAN ---
           });
           
+          // --- AWAL PERUBAHAN UNTUK LEGENDA ---
           legendContainer.innerHTML = `
             <div class="legend-item">
               <div class="legend-color-box green"></div>
@@ -1791,10 +1775,11 @@
               <span>Belum Lengkap</span>
             </div>
           `;
+          // --- AKHIR PERUBAHAN UNTUK LEGENDA ---
 
         } else {
           tableHTML += '<tr><td colspan="7">Tidak ada data guru untuk ditampilkan.</td></tr>';
-          legendContainer.innerHTML = '';
+          legendContainer.innerHTML = ''; // Kosongkan legenda jika tidak ada data
         }
         
         tableHTML += '</tbody></table></div>';
@@ -1816,11 +1801,11 @@
           document.getElementById("emis-import-container").style.display = "none";
           document.getElementById("emis-export-container").style.display = "none";
           document.getElementById("all-teachers-summary-container").style.display = "none";
-          document.getElementById("ajuan-perubahan-container").style.display = "none";
-          document.getElementById("pengajuan-perubahan-container").style.display = "none";
+
 
           document.getElementById("staff-dashboard-container").style.display = "block";
           
+          // MODIFIKASI DIMULAI DI SINI
           const welcomeH2 = document.getElementById('staff-welcome-message');
           let welcomeHTML = `Halo Staff, <strong>${currentUser.name}</strong>`;
 
@@ -1830,11 +1815,12 @@
             welcomeHTML += `<br><small>${selectedSchool}</small>`;
           }
           welcomeH2.innerHTML = welcomeHTML;
+          // MODIFIKASI SELESAI
           
           loadSchoolTeachers();
           loadStaffSummary();
-          loadStaffAjuanCount();
 
+          // Tampilkan loading untuk pengumuman staff
           const p = document.getElementById('staff-announcement-text');
           p.innerHTML = `<div class="message-with-loader" style="justify-content: left;"><div class="message-loader"></div><span>Memuat pengumuman...</span></div>`;
 
@@ -1863,6 +1849,7 @@
               selectEmis.appendChild(option);
             });
           })
+          // MODIFIKASI DI SINI: tambahkan 'selectedSchool'
           .getSchoolTeachers(currentUser.email, selectedSchool);
       }
 
@@ -1874,6 +1861,7 @@
           }
           const [year, month] = monthInput.value.split('-').map(Number);
           const container = document.getElementById('staff-summary-table-container');
+          // --- PERUBAHAN DIMULAI ---
           container.innerHTML = `
             <div class="loader-container">
               <div class="loader">
@@ -1883,6 +1871,7 @@
               </div>
               <p>Memuat ringkasan, mohon tunggu...</p>
             </div>`;
+          // --- PERUBAHAN SELESAI ---
 
           google.script.run
             .withSuccessHandler(summaries => {
@@ -1891,6 +1880,7 @@
             .withFailureHandler(err => {
               container.innerHTML = `<p style="color: var(--danger-color);">Gagal memuat: ${err.message}</p>`;
             })
+            // MODIFIKASI DI SINI: tambahkan 'selectedSchool'
             .getSchoolAttendanceSummary(currentUser.email, selectedSchool, year, month);
       }
 
@@ -2015,15 +2005,11 @@
         document.getElementById("staff-dashboard-container").style.display = "none";
         document.getElementById("ceklok-container").style.display = "none";
         document.getElementById("school-selection-container").style.display = "none";
-        document.getElementById("ajuan-perubahan-container").style.display = "none";
-        document.getElementById("pengajuan-perubahan-container").style.display = "none";
         document.getElementById("admin-container").style.display = "block";
         document.getElementById("admin-welcome-message").innerHTML = `Halo Admin, <strong>${currentUser.name}</strong>`;
-        
         loadUsers();
         loadAdminSettings();
         loadSchoolDropdown();
-        loadAdminAjuanCount();
       }
       
       function loadUsers() {
@@ -2096,6 +2082,7 @@
 
       function handleUserDelete(email) {
         if (confirm(`Yakin ingin menghapus akun ${email}?`)) {
+          // Tampilkan loading di tabel
           document.getElementById('user-table-container').innerHTML = `
             <div class="loader-container">
               <div class="loader"><div class="ball"></div><div class="ball"></div><div class="ball"></div></div>
@@ -2103,12 +2090,13 @@
             </div>`;
           google.script.run.withSuccessHandler(r => {
             if (r.status === 'success') loadUsers();
-            else renderUserTable([]);
+            else renderUserTable([]); // Jika gagal, render ulang (meskipun mungkin akan di-load ulang)
           }).deleteUser(currentUser.email, email);
         }
       }
 
       function loadAdminSettings() {
+        // Menampilkan pesan loading untuk pengaturan
         displayMessage('announcements-message', 'Memuat...', { isProcessing: true });
         displayMessage('locked-months-message', 'Memuat...', { isProcessing: true });
         displayMessage('holidays-message', 'Memuat...', { isProcessing: true });
@@ -2121,6 +2109,7 @@
           if (settings.holidays && settings.holidays.length > 0) {
             settings.holidays.forEach(h => addHolidayRow(h.date, h.description));
           }
+          // Hapus pesan loading
           displayMessage('announcements-message', '');
           displayMessage('locked-months-message', '');
           displayMessage('holidays-message', '');
@@ -2230,16 +2219,14 @@
         for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
         document.getElementById(tabName).style.display = "block";
         evt.currentTarget.className += " active";
-        
-        if (tabName === 'pengajuan') {
-          loadAdminPengajuanList();
-        }
       }
 
+      // PERUBAHAN DIMULAI: Menyesuaikan fungsi unduh rekap guru
       function handleGuruDownloadRekap() {
           const monthInput = document.getElementById('guru-rekap-month').value;
           const button = document.getElementById('guru-download-rekap-button');
           if (!monthInput) {
+              // Menargetkan ID pesan yang sudah digabung
               displayMessage('guru-rekap-message', 'Silakan pilih bulan dan tahun terlebih dahulu.');
               return;
           }
@@ -2274,6 +2261,7 @@
           const monthInput = document.getElementById('guru-rekap-month').value; 
           const button = document.getElementById('guru-download-all-rekap-button');
           if (!monthInput) {
+              // Menargetkan ID pesan yang sudah digabung dan menggunakan pesan yang konsisten
               displayMessage('guru-rekap-message', 'Silakan pilih bulan dan tahun terlebih dahulu.');
               return;
           }
@@ -2307,6 +2295,7 @@
               })
               .prepareSchoolRekapForPrint(currentUser.email, monthInput, selectedSchool);
       }
+      // PERUBAHAN SELESAI
 
       function showLkhPage() {
         document.getElementById("lkh-sptjm-dashboard-container").style.display = "none";
@@ -2330,34 +2319,38 @@
       function generateLkhForm(year, month) {
           const container = document.getElementById('lkh-table-container');
           const saveButton = document.getElementById('save-lkh-button');
-          const applyWeeklyButton = document.getElementById('apply-weekly-data-button');
+          const applyWeeklyButton = document.getElementById('apply-weekly-data-button'); // 1. Ambil elemen tombol
 
+          // Tampilkan loading
           container.innerHTML = `
             <div class="loader-container">
               <div class="loader"><div class="ball"></div><div class="ball"></div><div class="ball"></div></div>
               <p>Memuat formulir LKH...</p>
             </div>`;
           saveButton.disabled = true;
-          applyWeeklyButton.disabled = true;
+          applyWeeklyButton.disabled = true; // 2. Langsung nonaktifkan tombol
 
           google.script.run
             .withSuccessHandler(response => {
               if (response.success) {
                 renderLkhTable(response.workingDays, response.existingData);
                 saveButton.disabled = false; 
-                applyWeeklyButton.disabled = false;
+                applyWeeklyButton.disabled = false; // 3. Aktifkan kembali setelah sukses
               } else {
                 container.innerHTML = `<p style="color: var(--danger-color);">Gagal memuat data: ${response.error}</p>`;
+                // Tombol akan tetap nonaktif jika gagal
               }
             })
             .withFailureHandler(err => {
               container.innerHTML = `<p style="color: var(--danger-color);">Gagal memuat: ${err.message}</p>`;
+              // Tombol akan tetap nonaktif jika gagal
             })
             .getLKHData(currentUser.email, selectedSchool, year, month);
       }
 
       function renderLkhTable(workingDays, existingData) {
         const container = document.getElementById('lkh-table-container');
+        // Menambahkan header kolom "AKSI"
         let tableHTML = '<table><thead><tr><th>HARI / TANGGAL</th><th>URAIAN KEGIATAN</th><th>HASIL / OUTPUT</th><th>VOL</th><th>AKSI</th></tr></thead><tbody>';
         if (workingDays && workingDays.length > 0) {
           workingDays.forEach(day => {
@@ -2373,6 +2366,7 @@
             `;
           });
         } else {
+          // Menyesuaikan colspan karena ada 5 kolom sekarang
           tableHTML += '<tr><td colspan="5">Tidak ada hari kerja untuk bulan yang dipilih.</td></tr>';
         }
         tableHTML += '</tbody></table>';
@@ -2422,18 +2416,24 @@
           document.getElementById('lkh-sptjm-dashboard-container').style.display = 'none';
           document.getElementById('lkh-view-container').style.display = 'block';
 
+          // 1. Dapatkan elemen tombol dan pesan
           const downloadButton = document.getElementById('download-lkh-pdf-button');
           const messageElement = document.getElementById('lkh-download-message');
           
+          // 2. Nonaktifkan tombol di awal
           downloadButton.disabled = true;
           
+          // 3. Tampilkan pesan loading
           displayMessage('lkh-download-message', 'Memuat data pratinjau LKH...', { isProcessing: true });
           
+          // --- LOGIKA BARU ---
           const lkhMonthInput = document.getElementById('lkh-view-month-input');
+          // Jika input bulan di halaman LKH kosong, ambil nilai dari dasbor utama
           if (!lkhMonthInput.value) {
             lkhMonthInput.value = document.getElementById('summary-month-input').value || new Date().toISOString().slice(0, 7);
           }
           const selectedMonth = lkhMonthInput.value;
+          // --- AKHIR LOGIKA BARU ---
 
           const [year, month] = selectedMonth.split('-').map(Number);
 
@@ -2472,16 +2472,21 @@
                           tableBody.innerHTML = '<tr><td colspan="6" style="border: 1px solid black; padding: 8px; text-align: center;">Tidak ada data kegiatan untuk bulan ini.</td></tr>';
                       }
 
+                      // --- AWAL PERUBAHAN LOGIKA ---
+                      // 4. Cek kelengkapan pengaturan
                       const settingsComplete = arePrintSettingsComplete(data.settings || {});
 
                       if (settingsComplete) {
+                          // 5. Jika lengkap: Aktifkan tombol dan tampilkan pesan sukses
                           downloadButton.disabled = false;
                           displayMessage('lkh-download-message', 'Pratinjau siap. Klik untuk mengunduh.', { isSuccess: true });
                       } else {
+                          // 6. Jika tidak lengkap: Tombol tetap nonaktif dan tampilkan pesan permanen
                           downloadButton.disabled = true;
                           messageElement.innerHTML = 'Tombol Unduh PDF akan aktif setelah Pengaturan Cetak dilengkapi. <a href="#" onclick="event.preventDefault(); showSptjmSettingsPage();">Lengkapi Sekarang</a>';
-                          messageElement.style.color = 'var(--text-secondary-color)';
+                          messageElement.style.color = 'var(--text-secondary-color)'; // Atur warna pesan
                       }
+                      // --- AKHIR PERUBAHAN LOGIKA ---
 
                   } else {
                       displayMessage('lkh-download-message', `Error: ${response.error}`);
@@ -2499,7 +2504,10 @@
           button.querySelector('span').textContent = 'Membuat PDF...';
           displayMessage('lkh-download-message', 'Sedang memproses & membuat PDF, mohon tunggu...', { isProcessing: true });
           
+          // --- PERUBAHAN ---
+          // Mengambil nilai bulan dari input di halaman LKH, bukan dari dasbor
           const monthInput = document.getElementById('lkh-view-month-input').value;
+          // --- AKHIR PERUBAHAN ---
 
           google.script.run
               .withSuccessHandler(response => {
@@ -2533,6 +2541,7 @@
         const button = document.getElementById('apply-weekly-data-button');
         button.disabled = true;
         button.querySelector('span').textContent = 'Mengambil data...';
+        // Mengarahkan pesan ke elemen baru di sebelah tombol
         displayMessage('apply-weekly-data-message', 'Mengambil data mingguan...', { isProcessing: true });
 
         google.script.run
@@ -2574,18 +2583,22 @@
               });
 
               if (fieldsApplied > 0) {
+                 // Menampilkan pesan sukses di sebelah tombol
                  displayMessage('apply-weekly-data-message', `Data mingguan berhasil diterapkan.`, { isSuccess: true });
               } else {
+                 // Menampilkan pesan "semua terisi" di sebelah tombol
                  displayMessage('apply-weekly-data-message', 'Semua isian sudah terisi.', { isSuccess: true });
               }
 
             } else {
+              // Menampilkan pesan gagal di sebelah tombol
               displayMessage('apply-weekly-data-message', 'Gagal mengambil data mingguan atau tidak ada data tersimpan.');
             }
             button.disabled = false;
             button.querySelector('span').textContent = 'Ambil Data Mingguan';
           })
           .withFailureHandler(error => {
+            // Menampilkan pesan error di sebelah tombol
             displayMessage('apply-weekly-data-message', 'Error: ' + error.message);
             button.disabled = false;
             button.querySelector('span').textContent = 'Ambil Data Mingguan';
@@ -2594,413 +2607,17 @@
       }
 
       function handleClearLkhRow(event) {
+        // Mencegah perilaku default dari tombol
         event.preventDefault(); 
+        // Menemukan baris (tr) terdekat dari tombol yang diklik
         const row = event.target.closest('tr');
+        // Menemukan semua elemen textarea di dalam baris tersebut
         const textareas = row.querySelectorAll('textarea');
+        // Mengosongkan nilai dari setiap textarea
         textareas.forEach(textarea => {
           textarea.value = '';
         });
       }
-      
-      // ===================================================================
-      // LOGIKA BARU: AJUAN PERUBAHAN DATA (GURU)
-      // ===================================================================
-      
-      function checkGuruPendingAjuan() {
-        const button = document.getElementById('ajukan-perubahan-button');
-        const buttonSpan = button.querySelector('span');
-        
-        google.script.run
-          .withSuccessHandler(response => {
-            if (response.hasPending) {
-              buttonSpan.textContent = 'Lihat Status Ajuan';
-              button.classList.add('warning');
-            } else {
-              buttonSpan.textContent = 'Ajukan Perubahan Data';
-              button.classList.add('warning');
-            }
-          })
-          .checkPendingAjuan(currentUser.email, selectedSchool);
-      }
-
-      function showAjuanPerubahanPage() {
-        document.getElementById("guru-dashboard-container").style.display = "none";
-        document.getElementById("ajuan-perubahan-container").style.display = "block";
-        
-        document.getElementById('ajuan-attendance-table-container').innerHTML = `
-            <div class="loader-container">
-              <div class="loader"><div class="ball"></div><div class="ball"></div><div class="ball"></div></div>
-              <p>Memuat data absensi bulan lalu...</p>
-            </div>`;
-        document.getElementById('propose-changes-button').style.display = 'none';
-        document.getElementById('ajuan-confirmation-container').style.display = 'none';
-        document.getElementById('ajuan-pending-container').style.display = 'none';
-        
-        loadAjuanPerubahanData();
-      }
-      
-      function loadAjuanPerubahanData() {
-        google.script.run
-          .withSuccessHandler(response => {
-            if (response.error) {
-              document.getElementById('ajuan-attendance-table-container').innerHTML = `<p style="color: var(--danger-color);">${response.error}</p>`;
-              return;
-            }
-            
-            const { attendance, pendingAjuan, year, month, monthName, appSettings: serverAppSettings } = response;
-            
-            ajuanBulanLalu = { year, month, monthName };
-            appSettings = serverAppSettings;
-            originalAttendanceData = JSON.parse(JSON.stringify(attendance || {}));
-            
-            document.getElementById('ajuan-perubahan-month-display').textContent = `Bulan: ${monthName}`;
-            
-            if (pendingAjuan) {
-              document.getElementById('ajuan-attendance-table-container').innerHTML = '';
-              document.getElementById('ajuan-attendance-table-container').style.display = 'none';
-              document.getElementById('propose-changes-button').style.display = 'none';
-              document.getElementById('ajuan-confirmation-container').style.display = 'none';
-              
-              document.getElementById('ajuan-pending-table-container').innerHTML = formatPerubahanForTable(pendingAjuan.perubahan);
-              document.getElementById('ajuan-pending-container').style.display = 'block';
-            } else {
-              document.getElementById('ajuan-attendance-table-container').style.display = 'block';
-              document.getElementById('propose-changes-button').style.display = 'block';
-              document.getElementById('ajuan-confirmation-container').style.display = 'none';
-              document.getElementById('ajuan-pending-container').style.display = 'none';
-
-              generateMonthTable(year, month, attendance, 'ajuan-attendance-table-container', true);
-            }
-          })
-          .withFailureHandler(err => {
-            document.getElementById('ajuan-attendance-table-container').innerHTML = `<p style="color: var(--danger-color);">${err.message}</p>`;
-          })
-          .getAjuanDataForBulanLalu(currentUser.email, selectedSchool);
-      }
-      
-      function getPerubahanData() {
-          const changes = [];
-          const rows = document.querySelectorAll('#ajuan-attendance-table-container tbody tr');
-          const timeRegex = /^(?:2[0-3]|[01]?[0-9]):[0-5][0-9]$/;
-          let validationError = false;
-
-          rows.forEach(row => {
-              row.classList.remove('invalid-row');
-              const date = row.id.replace('row-', '');
-              if (!date || !row.querySelector('.time-entry')) return;
-
-              const checkInInput = row.querySelector(`#in-${date}`);
-              const checkOutInput = row.querySelector(`#out-${date}`);
-              const reasonSelect = row.querySelector(`select`);
-              
-              const newData = {
-                checkIn: (checkInInput ? checkInInput.value : "").trim(),
-                checkOut: (checkOutInput ? checkOutInput.value : "").trim(),
-                reason: (reasonSelect ? reasonSelect.value : "").trim()
-              };
-
-              if (!newData.reason) {
-                if ((newData.checkIn && !timeRegex.test(newData.checkIn)) || 
-                    (newData.checkOut && !timeRegex.test(newData.checkOut)) || 
-                    (newData.checkIn && !newData.checkOut) || 
-                    (!newData.checkIn && newData.checkOut)) {
-                  validationError = true;
-                  row.classList.add('invalid-row');
-                }
-                newData.checkIn = newData.checkIn || "";
-                newData.checkOut = newData.checkOut || "";
-              } else {
-                newData.checkIn = "";
-                newData.checkOut = "";
-              }
-
-              const oldData = originalAttendanceData[date] || { checkIn: "", checkOut: "", reason: "" };
-
-              if (newData.checkIn !== oldData.checkIn || newData.checkOut !== oldData.checkOut || newData.reason !== oldData.reason) {
-                  changes.push({
-                      tanggal: date,
-                      dataLama: oldData,
-                      dataBaru: newData
-                  });
-              }
-          });
-          
-          if (validationError) {
-             displayMessage('propose-changes-message', 'Gagal: Mohon perbaiki format waktu (HH:MM) atau lengkapi pasangan jam di baris merah.');
-             return null;
-          }
-          return changes;
-      }
-      
-      function handleProposeChanges() {
-        displayMessage('propose-changes-message', '');
-        const changes = getPerubahanData();
-        
-        if (changes === null) return;
-        
-        if (changes.length === 0) {
-          displayMessage('propose-changes-message', 'Tidak ada perubahan data yang terdeteksi.');
-          return;
-        }
-        
-        document.getElementById('ajuan-confirmation-table-container').innerHTML = formatPerubahanForTable(changes);
-        document.getElementById('ajuan-confirmation-container').style.display = 'block';
-        document.getElementById('propose-changes-button').style.display = 'none';
-      }
-      
-      function formatPerubahanForTable(changes) {
-        let tableHTML = '<table><thead><tr><th>Tanggal</th><th class="data-lama-header">Data Lama</th><th class="data-baru-header">Data Baru</th></tr></thead><tbody>';
-        changes.forEach(change => {
-          const lamaStr = change.dataLama.reason ? change.dataLama.reason : (change.dataLama.checkIn || ' - ') + ' / ' + (change.dataLama.checkOut || ' - ');
-          const baruStr = change.dataBaru.reason ? change.dataBaru.reason : (change.dataBaru.checkIn || ' - ') + ' / ' + (change.dataBaru.checkOut || ' - ');
-          
-          tableHTML += `
-            <tr>
-              <td>${change.tanggal}</td>
-              <td class="data-lama">${lamaStr}</td>
-              <td class="data-baru">${baruStr}</td>
-            </tr>
-          `;
-        });
-        tableHTML += '</tbody></table>';
-        return tableHTML;
-      }
-      
-      function handleCancelConfirmation() {
-        document.getElementById('ajuan-confirmation-container').style.display = 'none';
-        document.getElementById('propose-changes-button').style.display = 'block';
-      }
-      
-      function handleSubmitAjuan() {
-        const changes = getPerubahanData();
-        if (changes === null || changes.length === 0) {
-          displayMessage('propose-changes-message', 'Tidak ada perubahan untuk diajukan.');
-          handleCancelConfirmation();
-          return;
-        }
-        
-        const button = document.getElementById('submit-ajuan-button');
-        button.disabled = true;
-        button.querySelector('span').textContent = 'Mengirim...';
-        
-        const { year, month } = ajuanBulanLalu;
-        const bulanAjuan = `${year}-${String(month).padStart(2, '0')}`;
-        
-        google.script.run
-          .withSuccessHandler(response => {
-            if (response.status === 'success') {
-              displayMessage('propose-changes-message', 'Ajuan berhasil dikirim.', { isSuccess: true });
-              loadAjuanPerubahanData();
-              checkGuruPendingAjuan();
-            } else {
-              displayMessage('propose-changes-message', response.message);
-            }
-            button.disabled = false;
-            button.querySelector('span').textContent = 'Kirim Ajuan';
-          })
-          .withFailureHandler(err => {
-            displayMessage('propose-changes-message', err.message);
-            button.disabled = false;
-            button.querySelector('span').textContent = 'Kirim Ajuan';
-          })
-          .submitAjuanPerubahan(currentUser.email, selectedSchool, bulanAjuan, changes);
-      }
-      
-      function handleCancelPendingAjuan() {
-        if (!confirm('Apakah Anda yakin ingin membatalkan ajuan perubahan data ini?')) {
-          return;
-        }
-        
-        const button = document.getElementById('cancel-pending-ajuan-button');
-        button.disabled = true;
-        button.querySelector('span').textContent = 'Membatalkan...';
-        displayMessage('cancel-pending-message', 'Membatalkan ajuan...', { isProcessing: true });
-
-        const { year, month } = ajuanBulanLalu;
-        const bulanAjuan = `${year}-${String(month).padStart(2, '0')}`;
-        
-        google.script.run
-          .withSuccessHandler(response => {
-             if (response.status === 'success') {
-               displayMessage('propose-changes-message', 'Ajuan berhasil dibatalkan.', { isSuccess: true });
-               loadAjuanPerubahanData();
-               checkGuruPendingAjuan();
-             } else {
-               displayMessage('cancel-pending-message', response.message);
-             }
-             button.disabled = false;
-             button.querySelector('span').textContent = 'Batalkan Ajuan';
-          })
-          .withFailureHandler(err => {
-             displayMessage('cancel-pending-message', err.message);
-             button.disabled = false;
-             button.querySelector('span').textContent = 'Batalkan Ajuan';
-          })
-          .cancelAjuanPerubahan(currentUser.email, selectedSchool, bulanAjuan);
-      }
-
-      // ===================================================================
-      // LOGIKA BARU: AJUAN PERUBAHAN DATA (STAFF/ADMIN)
-      // ===================================================================
-
-      function loadStaffAjuanCount() {
-        google.script.run
-          .withSuccessHandler(response => {
-            const badge = document.getElementById('staff-ajuan-badge');
-            if (response.count > 0) {
-              badge.textContent = response.count;
-              badge.style.display = 'inline-block';
-            } else {
-              badge.style.display = 'none';
-            }
-          })
-          .getAjuanPerubahanCount(currentUser.email, selectedSchool);
-      }
-
-      function loadAdminAjuanCount() {
-        google.script.run
-          .withSuccessHandler(response => {
-            const badge = document.getElementById('admin-ajuan-badge');
-            if (response.count > 0) {
-              badge.textContent = response.count;
-              badge.style.display = 'inline-block';
-            } else {
-              badge.style.display = 'none';
-            }
-          })
-          .getAdminAjuanPerubahanCount(currentUser.email);
-      }
-      
-      function showPengajuanPerubahanPage() {
-        document.getElementById("staff-dashboard-container").style.display = "none";
-        document.getElementById("pengajuan-perubahan-container").style.display = "block";
-        document.getElementById("pengajuan-perubahan-subtitle").textContent = `Daftar ajuan untuk sekolah: ${selectedSchool}`;
-        loadPengajuanPerubahanList('pengajuan-list-table-container', 'pengajuan-list-message');
-      }
-      
-      function loadAdminPengajuanList() {
-        loadPengajuanPerubahanList('admin-pengajuan-table-container', 'admin-pengajuan-message');
-      }
-
-      function loadPengajuanPerubahanList(containerId, messageId) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = `
-            <div class="loader-container">
-              <div class="loader"><div class="ball"></div><div class="ball"></div><div class="ball"></div></div>
-              <p>Memuat daftar pengajuan...</p>
-            </div>`;
-        
-        const isAmdinCall = (currentUser.role === 'admin');
-        const apiCall = isAmdinCall ? 'getAdminDaftarAjuan' : 'getDaftarAjuan';
-        
-        google.script.run
-          .withSuccessHandler(response => {
-            if (response.error) {
-              container.innerHTML = `<p style="color: var(--danger-color);">${response.error}</p>`;
-              return;
-            }
-            
-            if (response.ajuanList.length === 0) {
-              container.innerHTML = `<p>Tidak ada pengajuan data yang menunggu persetujuan.</p>`;
-              return;
-            }
-            
-            let tableHTML = `<table><thead>
-              <tr>
-                <th>Nama Guru</th>
-                ${isAmdinCall ? '<th>Sekolah</th>' : ''}
-                <th>Bulan</th>
-                <th>Tanggal Ubah</th>
-                <th class="data-lama-header">Data Lama</th>
-                <th class="data-baru-header">Data Baru</th>
-                <th>Aksi</th>
-              </tr>
-            </thead><tbody>`;
-            
-            response.ajuanList.forEach(ajuan => {
-              const ajuanId = ajuan.ajuanId;
-              const changes = ajuan.perubahan;
-              const rowSpan = changes.length;
-              
-              changes.forEach((change, index) => {
-                const lamaStr = change.dataLama.reason ? change.dataLama.reason : (change.dataLama.checkIn || ' - ') + ' / ' + (change.dataLama.checkOut || ' - ');
-                const baruStr = change.dataBaru.reason ? change.dataBaru.reason : (change.dataBaru.checkIn || ' - ') + ' / ' + (change.dataBaru.checkOut || ' - ');
-                
-                tableHTML += `<tr>`;
-                if (index === 0) {
-                  tableHTML += `<td rowspan="${rowSpan}">${ajuan.nama}</td>`;
-                  if (isAmdinCall) {
-                    tableHTML += `<td rowspan="${rowSpan}">${ajuan.sekolah}</td>`;
-                  }
-                  tableHTML += `<td rowspan="${rowSpan}">${ajuan.bulanAjuan}</td>`;
-                }
-                tableHTML += `<td>${change.tanggal}</td>`;
-                tableHTML += `<td class="data-lama">${lamaStr}</td>`;
-                tableHTML += `<td class="data-baru">${baruStr}</td>`;
-                if (index === 0) {
-                  tableHTML += `
-                    <td rowspan="${rowSpan}" class="admin-action-buttons">
-                      <button onclick="handleApproveAjuan('${ajuanId}', '${containerId}', '${messageId}')"><i class="fa-solid fa-check"></i> <span>Setujui</span></button>
-                      <button class="reject-btn" onclick="handleRejectAjuan('${ajuanId}', '${containerId}', '${messageId}')"><i class="fa-solid fa-times"></i> <span>Tolak</span></button>
-                    </td>`;
-                }
-                tableHTML += `</tr>`;
-              });
-            });
-            
-            tableHTML += `</tbody></table>`;
-            container.innerHTML = tableHTML;
-          })
-          .withFailureHandler(err => {
-            container.innerHTML = `<p style="color: var(--danger-color);">${err.message}</p>`;
-          })
-          [apiCall](currentUser.email, selectedSchool);
-      }
-      
-      function handleApproveAjuan(ajuanId, containerId, messageId) {
-        if (!confirm('Apakah Anda yakin ingin MENYETUJUI perubahan data ini? Data absensi guru akan ditimpa.')) {
-          return;
-        }
-        displayMessage(messageId, 'Memproses persetujuan...', { isProcessing: true });
-        google.script.run
-          .withSuccessHandler(response => {
-            if (response.status === 'success') {
-              displayMessage(messageId, 'Ajuan berhasil disetujui.', { isSuccess: true });
-              loadPengajuanPerubahanList(containerId, messageId);
-              if(currentUser.role === 'admin') loadAdminAjuanCount();
-              else loadStaffAjuanCount();
-            } else {
-              displayMessage(messageId, response.message);
-            }
-          })
-          .withFailureHandler(err => {
-            displayMessage(messageId, err.message);
-          })
-          .processAjuan(currentUser.email, ajuanId, 'approved');
-      }
-
-      function handleRejectAjuan(ajuanId, containerId, messageId) {
-        if (!confirm('Apakah Anda yakin ingin MENOLAK perubahan data ini?')) {
-          return;
-        }
-        displayMessage(messageId, 'Memproses penolakan...', { isProcessing: true });
-        google.script.run
-          .withSuccessHandler(response => {
-            if (response.status === 'success') {
-              displayMessage(messageId, 'Ajuan berhasil ditolak.', { isSuccess: true });
-              loadPengajuanPerubahanList(containerId, messageId);
-              if(currentUser.role === 'admin') loadAdminAjuanCount();
-              else loadStaffAjuanCount();
-            } else {
-              displayMessage(messageId, response.message);
-            }
-          })
-          .withFailureHandler(err => {
-            displayMessage(messageId, err.message);
-          })
-          .processAjuan(currentUser.email, ajuanId, 'rejected');
-      }
-
     </script>
   </body>
 </html>
