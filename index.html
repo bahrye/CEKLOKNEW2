@@ -11,7 +11,7 @@
       <div id="login-container">
          <form id="login-form" onsubmit="event.preventDefault(); handleLogin();">
              <div class="card">
-              <h2>Ceklok Guru, Staff & Admin</h2>
+              <h2>Kehadiran Guru, Staff & Admin</h2>
               <p>Silakan login untuk melanjutkan</p>
               <div class="input-group">
                 <label for="email">Email</label>
@@ -360,6 +360,12 @@
       <?!= include('lkh'); ?>
       <?!= include('lkh_view'); ?>
       <?!= include('lkh_weekly'); ?>
+
+      <footer class="main-footer">
+        <a href="https://wa.me/qr/FMVS3NLDIRUAA1" target="_blank" rel="noopener noreferrer">
+          <p>&copy; <span id="currentYear"></span> Created by Syamsul Bahri</p>
+        </a>
+      </footer>
       </div>
     
     <div id="user-form-modal" class="modal">
@@ -688,6 +694,10 @@
       // INISIALISASI & OTENTIKASI
       // ===================================================================
       document.addEventListener('DOMContentLoaded', () => {
+        // --- AWAL PERUBAHAN: Set Tahun Otomatis ---
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+        // --- AKHIR PERUBAHAN ---
+
         const token = localStorage.getItem('ceklokAuthToken');
         if (token) {
           // --- PERUBAHAN DIMULAI (LOGIKA BARU) ---
