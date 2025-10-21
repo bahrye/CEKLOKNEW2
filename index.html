@@ -1230,6 +1230,7 @@
       function generateMonthTable(year, month, attendanceData) {
           const container = document.getElementById('attendance-table-container');
 
+          // Opsi standar
           const reasonOptions = `
               <option value="">-- Pilih Alasan --</option>
               <option value="Hari Libur Sekolah">Hari Libur Sekolah</option>
@@ -1249,26 +1250,9 @@
               <option value="Izin Sakit (Lebih dari 12 Bulan Sampai Dengan 18 Bulan)">Izin Sakit (Lebih dari 12 Bulan Sampai Dengan 18 Bulan)</option>
               <option value="Dinas Luar">Dinas Luar</option>
           `;
-
-          const teacherHolidayReasonOptions = `
-              <option value="Hari Libur Sekolah" selected>Hari Libur Sekolah</option>
-              <option value="">-- Pilih Alasan Lain --</option>
-              <option value="Cuti Tahunan">Cuti Tahunan</option>
-              <option value="Cuti Bersalin (Anak Pertama s.d Ketiga)">Cuti Bersalin (Anak Pertama s.d Ketiga)</option>
-              <option value="Cuti Bersalin (Anak Keempat dst) Bulan Pertama">Cuti Bersalin (Anak Keempat dst) Bulan Pertama</option>
-              <option value="Cuti Bersalin (Anak Keempat dst) Bulan Kedua">Cuti Bersalin (Anak Keempat dst) Bulan Kedua</option>
-              <option value="Cuti Bersalin (Anak Keempat dst) Bulan Ketiga">Cuti Bersalin (Anak Keempat dst) Bulan Ketiga</option>
-              <option value="Cuti Besar Bulan Pertama">Cuti Besar Bulan Pertama</option>
-              <option value="Cuti Besar Bulan Kedua">Cuti Besar Bulan Kedua</option>
-              <option value="Cuti Besar Bulan Ketiga">Cuti Besar Bulan Ketiga</option>
-              <option value="Izin Tugas belajar">Izin Tugas belajar</option>
-              <option value="Izin Alasan Penting (1 s.d 2 Hari)">Izin Alasan Penting (1 s.d 2 Hari)</option>
-              <option value="Izin Alasan Penting (Lebih dari 2 Hari)">Izin Alasan Penting (Lebih dari 2 Hari)</option>
-              <option value="Izin Sakit (1 hari Sampai Dengan 14 Hari)">Izin Sakit (1 hari Sampai Dengan 14 Hari)</option>
-              <option value="Izin Sakit (Lebih dari 14 Hari Sampai Dengan 12 Bulan)">Izin Sakit (Lebih dari 14 Hari Sampai Dengan 12 Bulan)</option>
-              <option value="Izin Sakit (Lebih dari 12 Bulan Sampai Dengan 18 Bulan)">Izin Sakit (Lebih dari 12 Bulan Sampai Dengan 18 Bulan)</option>
-              <option value="Dinas Luar">Dinas Luar</option>
-          `;
+          
+          // --- KODE BUGGY DIHAPUS DARI SINI ---
+          // Kita tidak lagi membutuhkan 'teacherHolidayReasonOptions'
 
           const daysInMonth = new Date(year, month, 0).getDate();
           const currentMonthStr = `${year}-${String(month).padStart(2, '0')}`;
@@ -1278,7 +1262,6 @@
           const currentMonth = today.getMonth() + 1;
           const isFutureMonth = year > currentYear || (year === currentYear && month > currentMonth);
           
-          // **VARIABEL KUNCI**
           const isDisabled = isMonthLocked || isFutureMonth;
 
           let lockMessage = "";
@@ -1296,29 +1279,27 @@
             const dayName = dateObj.toLocaleString('id-ID', { weekday: 'short' });
             const isSunday = dayOfWeek === 0;
             const isHoliday = !!appSettings.holidays[dateStr];
-            const isTeacherHoliday = appSettings.teacherHolidays[dayOfWeek - 1] && dayOfWeek !== 0; 
-            const existingData = attendanceData[dateStr];
+            // 'isTeacherHoliday' tidak lagi diperlukan di sini
+            // const isTeacherHoliday = appSettings.teacherHolidays[dayOfWeek - 1] && dayOfWeek !== 0; 
+            const existingData = attendanceData[dateStr]; // (data ini sudah diproses server)
             
             if (isHoliday) {
               tableHTML += `<tr id="row-${dateStr}" class="holiday-row"><td>${day} <small>(${dayName})</small></td><td colspan="3">${appSettings.holidays[dateStr]}</td><td></td></tr>`;
             } else if (isSunday) {
               tableHTML += `<tr id="row-${dateStr}" class="sunday-row"><td>${day} <small>(${dayName})</small></td><td colspan="3">Hari Libur</td><td></td></tr>`;
             } 
-            // --- PERUBAHAN UTAMA DI SINI ---
-            else if (!isFutureMonth && isTeacherHoliday && (!existingData || (existingData.checkIn === "" && existingData.checkOut === "" && existingData.reason === ""))) {
-                // Perhatikan penambahan 'isDisabled' pada <select> dan <button>
-                tableHTML += `<tr id="row-${dateStr}"><td>${day} <small>(${dayName})</small></td><td><input type="text" class="time-entry" id="in-${dateStr}" disabled></td><td><input type="text" class="time-entry" id="out-${dateStr}" disabled></td><td><select id="reason-${dateStr}" onchange="handleReasonChange(event)" ${isDisabled ? 'disabled' : ''}>${teacherHolidayReasonOptions}</select></td><td><button class="clear-btn" onclick="handleClearRow(event)" ${isDisabled ? 'disabled' : ''}>Hapus</button></td></tr>`;
-            }
-            // --- AKHIR PERUBAHAN ---
+            // --- BLOK 'else if (isTeacherHoliday...)' TELAH DIHAPUS ---
             else {
-              // Blok ini sudah benar, tidak perlu diubah.
-              // Variabel 'isDisabled' sudah diterapkan dengan benar di sini.
+              // Blok ini sekarang menangani SEMUA hari kerja
+              // 'reasonOptions' standar digunakan
               tableHTML += `<tr id="row-${dateStr}"><td>${day} <small>(${dayName})</small></td><td><input type="text" class="time-entry" id="in-${dateStr}" placeholder="HH:MM" maxlength="5" inputmode="numeric" oninput="handleTimeInput(event)" ${isDisabled ? 'disabled' : ''}></td><td><input type="text" class="time-entry" id="out-${dateStr}" placeholder="HH:MM" maxlength="5" inputmode="numeric" oninput="handleTimeInput(event)" ${isDisabled ? 'disabled' : ''}></td><td><select id="reason-${dateStr}" ${isDisabled ? 'disabled' : ''} onchange="handleReasonChange(event)">${reasonOptions}</select></td><td><button class="clear-btn" onclick="handleClearRow(event)" ${isDisabled ? 'disabled' : ''}>Hapus</button></td></tr>`;
             }
           }
           tableHTML += '</tbody></table></div>';
           container.innerHTML = tableHTML;
-          populateAttendanceData(attendanceData);
+          
+          // populateAttendanceData sekarang akan menerima data yang sudah bersih dari server
+          populateAttendanceData(attendanceData); 
       }
       
       function populateAttendanceData(data) {
