@@ -12,16 +12,6 @@ const announcementsSheet = ss.getSheetByName("Announcements");
 const teacherHolidaysSheet = ss.getSheetByName("TeacherHolidays");
 const lkhUsersSheet = ss.getSheetByName("LKHUsers"); 
 
-// FUNGSI BARU: Untuk mendapatkan sheet token
-function getUserTokensSheet_() {
-  let sheet = ss.getSheetByName("UserTokens");
-  if (!sheet) {
-    sheet = ss.insertSheet("UserTokens");
-    sheet.appendRow(["Email", "Token", "Timestamp"]);
-  }
-  return sheet;
-}
-
 // FUNGSI BARU: Untuk membuat token unik
 function generateToken_() {
   return Utilities.getUuid();
@@ -31,15 +21,19 @@ function generateToken_() {
 function verifyToken(token) {
   try {
     if (!token) return { status: "failed", message: "Token tidak ada." };
-    const tokenSheet = getUserTokensSheet_();
-    const data = tokenSheet.getDataRange().getValues();
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][1] === token) {
-        const email = data[i][0];
-        // Panggil fungsi login internal untuk mendapatkan data user lengkap
-        return getUserDataByEmail_(email);
-      }
+
+    // --- PERUBAHAN DIMULAI ---
+    // Menggunakan PropertiesService (super cepat) menggantikan Sheet (lambat)
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const email = scriptProperties.getProperty(token);
+    // --- PERUBAHAN SELESAI ---
+
+    if (email) {
+      // Token valid, dapatkan data user
+      // Panggil fungsi login internal untuk mendapatkan data user lengkap
+      return getUserDataByEmail_(email);
     }
+
     return { status: "failed", message: "Token tidak valid." };
   } catch (e) {
     Logger.log(`Error di verifyToken: ${e.toString()}`);
@@ -162,15 +156,24 @@ function userLogin(email, password) {
 
     if (userRow && userRow[1] == password) {
         const token = generateToken_();
-        const tokenSheet = getUserTokensSheet_();
-        // Hapus token lama jika ada
-        const tokens = tokenSheet.getDataRange().getValues();
-        for(let i = tokens.length - 1; i > 0; i--){
-          if(tokens[i][0].toLowerCase() === email.toLowerCase()){
-            tokenSheet.deleteRow(i+1);
-          }
+        
+        // --- PERUBAHAN DIMULAI ---
+        // Menggunakan PropertiesService (super cepat) menggantikan Sheet (lambat)
+        const scriptProperties = PropertiesService.getScriptProperties();
+        const emailKey = email.toLowerCase(); // Gunakan email lowercase sebagai kunci
+        
+        // 1. Hapus token lama jika ada (agar hanya 1 sesi per user)
+        const oldToken = scriptProperties.getProperty(emailKey);
+        if (oldToken) {
+          scriptProperties.deleteProperty(oldToken);
         }
-        tokenSheet.appendRow([email, token, new Date()]);
+        
+        // 2. Simpan token baru (dua arah untuk pencarian cepat)
+        // Simpan: email -> token (untuk menemukan token lama saat login)
+        scriptProperties.setProperty(emailKey, token);
+        // Simpan: token -> email (untuk memverifikasi token)
+        scriptProperties.setProperty(token, emailKey); 
+        // --- PERUBAHAN SELESAI ---
         
         return { 
             status: "success", 
@@ -189,15 +192,22 @@ function userLogin(email, password) {
 // FUNGSI BARU: Untuk logout
 function userLogout(token) {
   try {
-    if (!token) return { status: "success" }; // Tidak ada yang perlu dilakukan jika tidak ada token
-    const tokenSheet = getUserTokensSheet_();
-    const tokens = tokenSheet.getDataRange().getValues();
-    for (let i = 1; i < tokens.length; i++) {
-      if (tokens[i][1] === token) {
-        tokenSheet.deleteRow(i + 1);
-        break;
-      }
+    if (!token) return { status: "success" }; // Tidak ada yang perlu dilakukan
+
+    // --- PERUBAHAN DIMULAI ---
+    // Menggunakan PropertiesService (super cepat) menggantikan Sheet (lambat)
+    const scriptProperties = PropertiesService.getScriptProperties();
+    
+    // 1. Dapatkan email yang terkait dengan token ini
+    const email = scriptProperties.getProperty(token);
+    
+    // 2. Hapus token dan email (jika ada)
+    if (email) {
+      scriptProperties.deleteProperty(email); // Hapus: email -> token
     }
+    scriptProperties.deleteProperty(token); // Hapus: token -> email
+    // --- PERUBAHAN SELESAI ---
+
     return { status: "success" };
   } catch (e) {
     Logger.log(`Error di userLogout: ${e.toString()}`);
@@ -285,22 +295,36 @@ function getAttendancePageData(email, school, year, month, token) {
 }
 
 function getMonthlyAttendance(email, school, year, month) {
-  const attendanceData = {};
   const TIMEZONE = "GMT+8"; 
+  
+  // 1. Buat cache key yang SANGAT SPESIFIK per pengguna
+  const cache = CacheService.getScriptCache();
+  const cacheKey = `data_${email}_${school}_${year}_${month}`; 
+  const cachedData = cache.get(cacheKey);
+
+  if (cachedData) {
+    // Jika ada di cache, langsung kembalikan (data sudah dalam format object)
+    Logger.log(`Mengambil dari cache: ${cacheKey}`);
+    return JSON.parse(cachedData);
+  }
+  
+  // Jika tidak ada di cache:
+  Logger.log(`Membaca dari sheet: ${cacheKey}`);
+  const attendanceData = {};
   try {
-    // PERUBAHAN: Memanggil getAttendanceSheet_ tanpa membuat sheet baru jika tidak ada.
-    const sheet = getAttendanceSheet_(year, month, false);
-    // PERUBAHAN: Jika sheet tidak ada (null) atau kosong, langsung kembalikan object kosong.
+    const sheet = getAttendanceSheet_(year, month, false); 
     if (!sheet || sheet.getLastRow() < 2) return {}; 
     
+    // 2. Baca sheet (Gunakan getValues() seperti kode ASLI Anda)
     const data = sheet.getRange(2, 1, sheet.getLastRow() - 1, 8).getValues();
 
     data.forEach(row => {
       const recordEmail = row[1];
       const recordSchool = row[3];
 
+      // 3. Logika filter (SAMA SEPERTI ASLI)
       if (recordEmail === email && recordSchool === school) {
-        const recordDate = new Date(row[4]);
+        const recordDate = new Date(row[4]); // row[4] adalah Objek Tanggal
         const formattedDate = Utilities.formatDate(recordDate, TIMEZONE, "yyyy-MM-dd");
 
         let checkIn = row[5] instanceof Date ? Utilities.formatDate(row[5], TIMEZONE, "HH:mm") : (row[5] || "").toString().replace(/^'/, "");
@@ -309,7 +333,11 @@ function getMonthlyAttendance(email, school, year, month) {
         attendanceData[formattedDate] = { checkIn, checkOut, reason: row[7] || "" };
       }
     });
+
+    // 4. Simpan OBJEK YANG SUDAH JADI ke cache
+    cache.put(cacheKey, JSON.stringify(attendanceData), 21600); // Cache 6 jam
     return attendanceData;
+    
   } catch (e) {
     Logger.log(`Error di getMonthlyAttendance: ${e.toString()}`);
     return {}; 
@@ -328,7 +356,6 @@ function saveMonthlyAttendance(payload) {
     const year = d.getUTCFullYear();
     const month = d.getUTCMonth() + 1;
 
-    // PERUBAHAN: Memanggil getAttendanceSheet_ dengan izin untuk membuat sheet jika belum ada.
     const sheet = getAttendanceSheet_(year, month, true);
     const allData = sheet.getDataRange().getValues();
     const TIMEZONE = "GMT+8";
@@ -342,7 +369,7 @@ function saveMonthlyAttendance(payload) {
       }
     }
 
-    const rowsToDelete = [];
+    // --- Performa (dari step sebelumnya) ---
     const rowsToUpdate = [];
     const rowsToInsert = [];
 
@@ -353,7 +380,10 @@ function saveMonthlyAttendance(payload) {
       if (existingRecords[date]) {
         const rowIndex = existingRecords[date].rowIndex;
         if (isEntryEmpty) {
-          rowsToDelete.push(rowIndex);
+          rowsToUpdate.push({
+            range: `F${rowIndex}:H${rowIndex}`,
+            values: [['', '', '']] 
+          });
         } else {
           rowsToUpdate.push({
             range: `F${rowIndex}:H${rowIndex}`,
@@ -378,13 +408,11 @@ function saveMonthlyAttendance(payload) {
     if (rowsToUpdate.length > 0) {
       rowsToUpdate.forEach(update => sheet.getRange(update.range).setValues(update.values));
     }
-    if (rowsToDelete.length > 0) {
-      rowsToDelete.sort((a, b) => b - a).forEach(rowIndex => sheet.deleteRow(rowIndex));
-    }
+    // --- Akhir Performa ---
 
-    // --- AWAL PERUBAHAN: Logika Notifikasi Penyelesaian 100% ---
+
+    // --- Logika Notifikasi 100% (tidak berubah) ---
     try {
-      // 1. Dapatkan data yang diperlukan untuk kalkulasi ringkasan
       const holidaysData = holidaysSheet.getDataRange().getValues().slice(1);
       const nationalHolidays = {};
       holidaysData.forEach(row => {
@@ -392,22 +420,21 @@ function saveMonthlyAttendance(payload) {
           nationalHolidays[Utilities.formatDate(row[0], "GMT", "yyyy-MM-dd")] = row[1];
         }
       });
-      const teacherHolidays = getTeacherHolidays(email);
-      // 2. Ambil data absensi yang BARU SAJA DISIMPAN
-      const freshAttendanceData = getMonthlyAttendance(email, school, year, month);
-
-      // 3. Hitung ringkasan
-      const summary = calculateSummaryForUser_(freshAttendanceData, teacherHolidays, nationalHolidays, year, month);
       
-      // 4. Buat kunci unik untuk properti
+      // PENTING: Hapus cache pengguna SEBELUM memanggil getMonthlyAttendance lagi
+      const userCacheKey_temp = `data_${email}_${school}_${year}_${month}`;
+      CacheService.getScriptCache().remove(userCacheKey_temp);
+      
+      const teacherHolidays = getTeacherHolidays(email);
+      const freshAttendanceData = getMonthlyAttendance(email, school, year, month); // Akan mengambil data baru
+      const summary = calculateSummaryForUser_(freshAttendanceData, teacherHolidays, nationalHolidays, year, month);
       const monthStr = `${year}-${String(month).padStart(2, '0')}`;
       const notificationKey = `completion_notif_${email}_${school}_${monthStr}`;
-      const userProperties = PropertiesService.getUserProperties(); // Menggunakan UserProperties agar spesifik per user
+      const userProperties = PropertiesService.getUserProperties();
       const notificationSent = userProperties.getProperty(notificationKey);
       const monthName = new Date(year, month - 1, 1).toLocaleString('id-ID', { month: 'long', year: 'numeric', timeZone: 'GMT' });
 
       if (summary.persentase === 100) {
-        // 5. Jika 100% dan notifikasi BELUM terkirim
         if (notificationSent !== 'sent') {
           const subject = `Ceklok Selesai: Kehadiran ${school} Anda 100%`;
           const body = `
@@ -427,20 +454,32 @@ function saveMonthlyAttendance(payload) {
             <p><em>(Ini adalah notifikasi otomatis. Anda hanya akan menerima email ini satu kali per bulan saat data Anda mencapai 100%.)</em></p>
           `;
           MailApp.sendEmail({ to: email, subject: subject, htmlBody: body, name: "Sistem Ceklok Otomatis" });
-          // 6. Tandai bahwa notifikasi telah dikirim
           userProperties.setProperty(notificationKey, 'sent');
         }
       } else {
-        // 7. Jika KURANG dari 100%, hapus tanda (untuk kasus edit/hapus data)
         if (notificationSent === 'sent') {
           userProperties.deleteProperty(notificationKey);
         }
       }
     } catch (e) {
         Logger.log(`Gagal mengirim notifikasi penyelesaian 100% untuk ${email} di ${school}: ${e.message}`);
-        // Jangan hentikan proses save, cukup log errornya.
     }
-    // --- AKHIR PERUBAHAN ---
+    // --- Akhir Logika Notifikasi ---
+
+    // --- TAMBAHAN BARU: Hapus cache setelah menyimpan data ---
+    const cache = CacheService.getScriptCache();
+    
+    // 1. Hapus cache data mentah (dipakai getSchoolAttendanceSummary)
+    const rawCacheKey = `raw_display_attendance_${year}_${month}`;
+    cache.remove(rawCacheKey);
+    Logger.log(`Menghapus cache mentah: ${rawCacheKey}`);
+    
+    // 2. Hapus cache data spesifik pengguna (dipakai getMonthlyAttendance)
+    // (Ini sudah dihapus di atas sebelum memanggil notifikasi, tapi kita panggil lagi untuk keamanan)
+    const userCacheKey = `data_${email}_${school}_${year}_${month}`;
+    cache.remove(userCacheKey);
+    Logger.log(`Menghapus cache pengguna: ${userCacheKey}`);
+    // --- AKHIR TAMBAHAN ---
 
     return { status: "success", message: "Absensi bulan ini berhasil diperbarui!" };
   } catch (e) {
@@ -532,23 +571,35 @@ function getAttendanceSummary(userEmail, school, year, month) {
   }
 }
 
-// FUNGSI LAMA (getSchoolAttendanceSummary) DIGANTI TOTAL dengan versi yang lebih cepat.
 function getSchoolAttendanceSummary(userEmail, school, year, month) {
   try {
     const teachers = getSchoolTeachers(userEmail, school);
     if (!school || teachers.length === 0) return [];
 
-    // 1. Ambil semua data yang dibutuhkan dengan sedikit panggilan.
     const holidaysData = holidaysSheet.getDataRange().getValues().slice(1);
     const teacherHolidaysData = teacherHolidaysSheet.getDataRange().getValues().slice(1);
     
-    // 2. Baca seluruh data absensi dalam SATU KALI panggilan.
-    const attendanceSheet = getAttendanceSheet_(year, month, false);
-    const allAttendanceValues = attendanceSheet && attendanceSheet.getLastRow() > 1
-      ? attendanceSheet.getRange(2, 1, attendanceSheet.getLastRow() - 1, 8).getValues()
-      : [];
+    // --- CACHE LOGIC (Menggunakan DisplayValues agar kebal zona waktu) ---
+    const cache = CacheService.getScriptCache();
+    // Kunci cache ini untuk data MENTAH (raw) sheet
+    const rawCacheKey = `raw_display_attendance_${year}_${month}`; 
+    let allAttendanceValues;
+    const cachedData = cache.get(rawCacheKey);
+    
+    if (cachedData) {
+      Logger.log(`Mengambil summary mentah dari cache: ${rawCacheKey}`);
+      allAttendanceValues = JSON.parse(cachedData);
+    } else {
+      Logger.log(`Membaca summary mentah dari sheet: ${rawCacheKey}`);
+      const attendanceSheet = getAttendanceSheet_(year, month, false);
+      // KEMBALI MENGGUNAKAN getDisplayValues()
+      allAttendanceValues = attendanceSheet && attendanceSheet.getLastRow() > 1
+        ? attendanceSheet.getRange(2, 1, attendanceSheet.getLastRow() - 1, 8).getDisplayValues() 
+        : [];
+      cache.put(rawCacheKey, JSON.stringify(allAttendanceValues), 21600);
+    }
+    // --- AKHIR CACHE LOGIC ---
 
-    // 3. Olah data mentah menjadi struktur yang lebih mudah diakses.
     const nationalHolidays = {};
     holidaysData.forEach(row => {
       if (row[0] instanceof Date && row[1]) {
@@ -559,7 +610,7 @@ function getSchoolAttendanceSummary(userEmail, school, year, month) {
     const teacherHolidaysMap = new Map(teacherHolidaysData.map(row => [row[0].toLowerCase(), row.slice(1, 7)]));
     
     const attendanceByEmail = {};
-    const TIMEZONE = "GMT+8";
+    
     allAttendanceValues.forEach(row => {
       const recordEmail = row[1].toLowerCase();
       const recordSchool = row[3];
@@ -567,33 +618,37 @@ function getSchoolAttendanceSummary(userEmail, school, year, month) {
         if (!attendanceByEmail[recordEmail]) {
           attendanceByEmail[recordEmail] = {};
         }
-        const recordDate = new Date(row[4]);
-        const formattedDate = Utilities.formatDate(recordDate, TIMEZONE, "yyyy-MM-dd");
-        let checkIn = row[5] instanceof Date ? Utilities.formatDate(row[5], TIMEZONE, "HH:mm") : (row[5] || "").toString().replace(/^'/, "");
-        let checkOut = row[6] instanceof Date ? Utilities.formatDate(row[6], TIMEZONE, "HH:mm") : (row[6] || "").toString().replace(/^'/, "");
-        attendanceByEmail[recordEmail][formattedDate] = { checkIn, checkOut, reason: row[7] || "" };
+        
+        // --- INI PERBAIKANNYA ---
+        // row[4] adalah string "yyyy-MM-dd" dari getDisplayValues()
+        // Kita tidak perlu new Date() atau Utilities.formatDate()
+        const formattedDate = row[4];
+        // --- AKHIR PERBAIKAN ---
+
+        if (formattedDate) {
+          // row[5] dan row[6] adalah string "HH:mm"
+          let checkIn = row[5] || "";
+          let checkOut = row[6] || "";
+          attendanceByEmail[recordEmail][formattedDate] = { checkIn, checkOut, reason: row[7] || "" };
+        }
       }
     });
 
-    // 4. Hitung ringkasan untuk setiap guru menggunakan data yang sudah diolah.
+    // Sisa fungsi (kalkulasi summary) tidak berubah
     const summaries = teachers.map(teacher => {
-      const teacherEmail = teacher.email.toLowerCase();
-      const teacherAttendance = attendanceByEmail[teacherEmail] || {};
-      const teacherHolidays = teacherHolidaysMap.get(teacherEmail) || Array(6).fill(false);
-      const summaryResult = calculateSummaryForUser_(teacherAttendance, teacherHolidays, nationalHolidays, year, month);
-      
-      return {
-        name: teacher.name,
-        email: teacher.email,
-        summary: summaryResult
-      };
+        const teacherEmail = teacher.email.toLowerCase();
+        const teacherAttendance = attendanceByEmail[teacherEmail] || {};
+        const teacherHolidays = teacherHolidaysMap.get(teacherEmail) || Array(6).fill(false);
+        const summaryResult = calculateSummaryForUser_(teacherAttendance, teacherHolidays, nationalHolidays, year, month);
+        
+        return { name: teacher.name, email: teacher.email, summary: summaryResult };
     });
 
     return summaries;
 
   } catch (e) {
     Logger.log(`Error di getSchoolAttendanceSummary (optimized): ${e.toString()} | Stack: ${e.stack}`);
-    return []; // Kembalikan array kosong jika gagal.
+    return []; 
   }
 }
 
