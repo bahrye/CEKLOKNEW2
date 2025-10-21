@@ -95,7 +95,7 @@ function getUrutanNamaSheet_() {
  */
 function getAttendanceSheet_(year, month, createIfNotExist = false) {
   const monthStr = String(month).padStart(2, '0');
-  const yearStr = String(year).slice(-2);
+  const yearStr = String(year);
   const sheetName = `Attendance_${monthStr}_${yearStr}`;
   
   let sheet = ss.getSheetByName(sheetName);
